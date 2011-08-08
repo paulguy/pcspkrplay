@@ -1,0 +1,35 @@
+PC Speaker Player
+
+1. Introduction
+
+This program will play PC speaker music in Linux using the Linux input devices API.  Currently it only supports 
+Megazeux style play statements.  ZZT #play statement support may be added later.
+
+2. Compiling it
+
+Executing:
+sh build.sh
+
+should build it for you.  This doesn't depend on anything special that wouldn't come with linux.
+
+3. Usage
+
+<name or path to executable> <path to event device> <music string>
+
+Example: ./pcspkrplay /dev/input/event2 icdefgab+cdefgab
+
+You must have permission to access /dev/input/event2.
+
+4. Megazeux format music strings
+
+C, D, E, F, G, A, B  -  Play a note
+0, 1, 2, 3, 4, 5, 6  -  Select octave, default 3
+#, $  -  Placed after a note, moves the note up or down a semitone.  B# is accepted and becomes C on the next octave 
+except for 6B#, E becomes F, C$ becomes B on the previous octave except for 0C$.
+Z, T, S, I, Q, W, H  -  Select note duration, 64th, 32nd, 16th, 8th, quarter, half, whole.  Default is 32nd.
++, -  -  Increase or decrease octave by 1, clips at 0 and 6.
+.  -  Change duration of folloing notes by 150%
+!  -  Change duration of following notes by 1/3.
+&string&  -  Ignores string.  Normally used to play a sample, but for this program, you can use it for comments.
+
+everything else is ignored.
