@@ -10,6 +10,7 @@
 #include "music.h"
 #include "util.h"
 #include "compile.h"
+#include "output.h"
 
 void statusout(int cur, int max) {
 	fprintf(stderr, "%u/%u\r", cur, max);

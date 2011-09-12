@@ -1,6 +1,6 @@
 all: pcspkrplay
 
-pcspkrplay: compile.o music.o pcspkrplay.o util.o
+pcspkrplay: compile.o music.o pcspkrplay.o util.o output.o
 	$(CC) $(LDFLAGS) -o $@ $^
 
 compile.o: compile.c
@@ -15,7 +15,10 @@ pcspkrplay.o: pcspkrplay.c
 util.o: util.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
+output.o: output.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+
 clean:
-	rm -f compile.o music.o pcspkrplay.o util.o pcspkrplay
+	rm -f compile.o music.o pcspkrplay.o util.o output.o pcspkrplay
 
 .PHONY: clean

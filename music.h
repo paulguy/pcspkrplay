@@ -58,7 +58,4 @@ command *delcmd(song *s);
 int rewindsong(song *s);
 int nextcommand(song *s);
 int prevcommand(song *s);
-int playnote(int fd, command *cmd);
-int playsong(int fd, song *song, void (*status)(int cur, int max));
-
 #endif
