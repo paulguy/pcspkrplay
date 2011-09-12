@@ -17,9 +17,13 @@ should build it for you.  This doesn't depend on anything special that wouldn't 
 
 <name or path to executable> <path to event device> <music string>
 
-Example: ./pcspkrplay /dev/input/event2 icdefgab+cdefgab
+Example: ./pcspkrplay /dev/input/by-path/platform-pcspkr-event-spkr icdefgab+cdefgab+c
 
-You must have permission to access /dev/input/event2.
+You must have permission to access /dev/input/by-path/platform-pcspkr-event-spkr, which is 
+usually a symbolic link set up by udev.  This might change some time in the future.  The pcspkr 
+driver will also have to have been loaded for this device to appear.  Currently, that's loaded in 
+with executing as root:
+modprobe pcspkr
 
 4. Megazeux format music strings
 
