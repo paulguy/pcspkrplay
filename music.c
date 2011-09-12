@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <unistd.h>
 #include <linux/input.h>
 #include <sys/ioctl.h>
 #include <sys/types.h>
@@ -193,7 +194,7 @@ int playnote(int fd, command *c) {
 			case A:
 			case ASHARP:
 			case B:
-				if(c->octave < 0 || c->octave > 6)
+				if(c->octave > 6)
 					return(-2);
 				ev.value = (int)(notefreqs[c->octave][c->note]);
 				if(write(fd, &ev, sizeof(struct input_event)) < 0)
@@ -205,6 +206,7 @@ int playnote(int fd, command *c) {
 					return(-1);
 		}
 	}
+	return(0);
 }
 
 int playsong(int fd, song *s, void (*status)(int cur, int max)) {
@@ -248,4 +250,5 @@ int playsong(int fd, song *s, void (*status)(int cur, int max)) {
 
 	if(playnote(fd, NULL) < 0)
 		return(-1);
+	return(0);
 }

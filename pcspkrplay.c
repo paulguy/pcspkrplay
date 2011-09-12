@@ -16,7 +16,6 @@ void statusout(int cur, int max) {
 }
 
 int main(int argc, char **argv) {
-	int datalen;
 	int speaker;
 	song *s;
 
