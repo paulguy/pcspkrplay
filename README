@@ -9,7 +9,7 @@ strings.
 2. Compiling it
 
 Executing:
-sh build.sh
+make
 
 should build it for you.  This doesn't depend on anything special that wouldn't come with linux.
 
