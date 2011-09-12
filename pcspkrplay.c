@@ -18,7 +18,7 @@ void statusout(int cur, int max) {
 int main(int argc, char **argv) {
 	int datalen;
 	int speaker;
-	song *song;
+	song *s;
 
 	int sndcap;
 
@@ -43,15 +43,13 @@ int main(int argc, char **argv) {
 		exit(-4);
 	}
 
-	song = malloc(sizeof(song));
-	if(song == NULL) {
-		return -1;
-	}
-
-	if(compilesong_MZX(song, argv[2], strlen(argv[2])) != 0) {
+	s = compilesong(argv[2], strlen(argv[2]));
+	if(s == NULL) {
 		fprintf(stderr, "Song compile failed.\n");
+		exit(-1);
 	}
-	playsong(speaker, song, statusout);
+	rewindsong(s);
+	playsong(speaker, s, statusout);
 	fprintf(stderr, "\n");
 
 	exit(0);

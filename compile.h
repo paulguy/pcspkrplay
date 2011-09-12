@@ -1,1 +1,3 @@
-int compilesong_MZX(song *song, char *songstr, int length);
+#include "music.h"
+
+song *compilesong(char *songstr, int length);

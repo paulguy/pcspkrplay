@@ -2,13 +2,16 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "music.h"
+#include "compile.h"
 #include "util.h"
 
-int compilesong_MZX(song *song, char *songstr, int length) {
+song *compilesong(char *songstr, int length) {
 	char cur;
+	char tmpstr[4] = {0, 0, 0, 0};
+	int t;
 	int pos;
-	command *cmd;
+	song *s;
+	command *c;
 
 	/* long term */
 	int octave;
@@ -18,25 +21,21 @@ int compilesong_MZX(song *song, char *songstr, int length) {
 	/* transient state */
 	note note;
 	int addnote;
+	int data; /* ovarrides octave for special commands */
+
+	s = initsong();
+	if(s == NULL)
+		return(NULL);
 
 	octave = 3;
 	divisor = 32;
 	duration = NORMAL;
+	s->bpm = 50;
 
 	chartolower(songstr, length);
-
-	song->bpm = 50;
-	song->count = 1;
-
-	song->first = malloc(sizeof(command));
-	if(cmd == NULL) {
-		return -1;
-	}
-	cmd = song->first;
-	cmd->note = NOTHING;
-
 	for(pos = 0; pos < length; pos++) {
 		addnote = 0;
+		data = 0;
 
 		cur = songstr[pos];
 
@@ -183,12 +182,16 @@ int compilesong_MZX(song *song, char *songstr, int length) {
 				divisor = 1;
 				break;
 			case '.':
-				if(duration != NORMAL) {
+				if(duration == DOT) {
+					duration = NORMAL;
+				} else {
 					duration = DOT;
 				}
 				break;
 			case '!':
-				if(duration != NORMAL) {
+				if(duration == TRIPLET) {
+					duration = NORMAL;
+				} else {
 					duration = TRIPLET;
 				}
 				break;
@@ -200,43 +203,69 @@ int compilesong_MZX(song *song, char *songstr, int length) {
 					}
 				}
 				break;
+			case '*':
+				pos++;
+				if(pos < length) {
+					switch(songstr[pos]) {
+						case 'b':
+							if(pos + 3 < length) {
+								tmpstr[0] = songstr[pos + 1];
+								tmpstr[1] = songstr[pos + 2];
+								tmpstr[2] = songstr[pos + 3];
+								t = atoi(tmpstr);
+								if(t > 0) {
+									addnote = 1;
+									note = BPM;
+									data = t;
+								}
+								pos += 3;
+							}
+							break;
+						default:
+							break;
+					}
+				}
+				break;
 			default:
 				break;
 			}
 		}
 
 		if(addnote == 1) {
-			cmd->octave = octave;
-			cmd->divisor = divisor;
-			cmd->duration = duration;
+			c = initcommand();
+			if(c == NULL) {
+				freesong(s);
+				return(NULL);
+			}
+
+			if(data == 0) {
+				c->octave = octave;
+			} else {
+				c->octave = data;
+			}
+			c->divisor = divisor;
+			c->duration = duration;
 			if(note == NEXTC) {
-				if(cmd->octave == 6) {
-					cmd->note = B;
+				if(c->octave == 6) {
+					c->note = B;
 				} else {
-					cmd->octave++;
-					cmd->note = C;
+					c->octave++;
+					c->note = C;
 				}
 			} else if(note == PREVB) {
-				if(cmd->octave == 0) {
-					cmd->note = C;
+				if(c->octave == 0) {
+					c->note = C;
 				} else {
-					cmd->octave--;
-					cmd->note = B;
+					c->octave--;
+					c->note = B;
 				}
 			} else {
-				cmd->note = note;
+				c->note = note;
 			}
 
-			cmd->next = malloc(sizeof(command));
-			if(cmd->next == NULL) {
-				return -1;
-			}
-			cmd = cmd->next;
-			cmd->note = NOTHING;
-
-			song->count++;
+			addcmd(c, s);
 		}
 	}
 
-	return 0;
+	return(s);
 }
