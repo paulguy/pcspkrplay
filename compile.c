@@ -27,10 +27,10 @@ song *compilesong(char *songstr, int length) {
 	if(s == NULL)
 		return(NULL);
 
-	octave = 3;
-	divisor = 32;
+	octave = DEFAULT_OCTAVE;
+	divisor = DEFAULT_DIVISOR;
 	duration = NORMAL;
-	s->bpm = 50;
+	s->bpm = DEFAULT_BPM;
 
 	chartolower(songstr, length);
 	for(pos = 0; pos < length; pos++) {
@@ -221,6 +221,18 @@ song *compilesong(char *songstr, int length) {
 								pos += 3;
 							}
 							break;
+						case 'd':
+							if(pos + 3 < length) {
+								tmpstr[0] = songstr[pos + 1];
+								tmpstr[1] = songstr[pos + 2];
+								tmpstr[2] = songstr[pos + 3];
+								t = atoi(tmpstr);
+								if(t > 0) {
+									divisor = t;
+								}
+								pos += 3;
+							}
+							break;
 						default:
 							break;
 					}
@@ -238,10 +250,10 @@ song *compilesong(char *songstr, int length) {
 				return(NULL);
 			}
 
-			if(data == 0) {
-				c->octave = octave;
-			} else {
+			if(data != 0) {
 				c->octave = data;
+			} else {
+				c->octave = octave;
 			}
 			c->divisor = divisor;
 			c->duration = duration;
@@ -269,3 +281,36 @@ song *compilesong(char *songstr, int length) {
 
 	return(s);
 }
+
+/*
+char *decompilesong(song *s) {
+	char *out;
+	int size;
+
+	int octave;
+	int divisor;
+	duration duration;
+
+	octave = DEFAULT_OCTAVE;
+	divisor = DEFAULT_DIVISOR;
+	duration = NORMAL;
+
+	if(s->current == NULL) {
+		return(NULL);
+
+	out = malloc(sizeof(char) * DECOMPILE_BUFFER);
+	if(out == NULL)
+		return(NULL);
+
+	do {
+		if(s->current->note <= REST) {
+			if(s->current->octave != octave) {
+				switch(octave) {
+					case 0;
+						
+				
+	} while(nextcommand(s) == 0);
+
+	return(ret);
+}
+*/

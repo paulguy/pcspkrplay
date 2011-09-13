@@ -25,13 +25,17 @@ driver will also have to have been loaded for this device to appear.  Currently,
 with executing as root:
 modprobe pcspkr
 
+If it complains about permission denied, you have to set the PC speaker device read/writable by 
+your user.  To do this you can just do something this as root:
+chmod a+rw /dev/input/by-path/platform-pcspkr-event-spkr
+
 4. Megazeux format music strings
 
 C, D, E, F, G, A, B  -  Play a note
 0, 1, 2, 3, 4, 5, 6  -  Select octave, default 3
 #, $  -  Placed after a note, moves the note up or down a semitone.  B# is accepted and becomes C on the next octave 
 	except for 6B#, E becomes F, C$ becomes B on the previous octave except for 0C$.
-Z, T, S, I, Q, W, H  -  Select note duration, 64th, 32nd, 16th, 8th, quarter, half, whole.  
+Z, T, S, I, Q, H, W  -  Select note duration, 64th, 32nd, 16th, 8th, quarter, half, whole.  
 	Default is 32nd.
 +, -  -  Increase or decrease octave by 1, clips at 0 and 6.
 .  -  Change duration of folloing notes by 150%.  Can be unset with another '.', can override 
@@ -41,6 +45,7 @@ Z, T, S, I, Q, W, H  -  Select note duration, 64th, 32nd, 16th, 8th, quarter, ha
 &string&  -  Ignores string.  Normally used to play a sample, but for this program, you can use 
 	it for comments.
 *  -  Extended command
-	b###  -  Change BPM from 0 to 999.
+	b###  -  Change BPM from 0 to 999.  (*b060 for 60 BPM)
+	d###  -  Change to custom note division.  (*d010 for tenth notes)
 
 Unknown or malformed commands are ignored.
