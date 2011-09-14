@@ -25,6 +25,12 @@ driver will also have to have been loaded for this device to appear.  Currently,
 with executing as root:
 modprobe pcspkr
 
+To play from a file, you can call the program like this:
+./pcspkrplay /dev/input/by-path/platform-pcspkr-event-spkr $(cat filename)
+
+This package includes a sample produced by a friend neffy contactable on IRC at irc.rizon.net.
+The file is Stem DJ Shadow.txt, it is a cover of a part of the song Stem by DJ Shadow.
+
 If it complains about permission denied, you have to set the PC speaker device read/writable by 
 your user.  To do this you can just do something this as root:
 chmod a+rw /dev/input/by-path/platform-pcspkr-event-spkr
