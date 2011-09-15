@@ -56,10 +56,11 @@ int main(int argc, char **argv) {
 		exit(-5);
 	}
 	freestr(sstr);
-
+#ifdef DECOMPILER
 	rewindsong(s);
 	sstr = decompilesong(s);
 	fprintf(stderr, "%s\n", sstr->data);
+#endif
 	rewindsong(s);
 	playsong(speaker, s, statusout);
 	fprintf(stderr, "\n");

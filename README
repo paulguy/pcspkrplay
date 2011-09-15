@@ -55,5 +55,7 @@ Z, T, S, I, Q, H, W  -  Select note duration, 64th, 32nd, 16th, 8th, quarter, ha
 *  -  Extended command
 	b###  -  Change BPM from 0 to 999.  (*b060 for 60 BPM)
 	d###  -  Change to custom note division.  (*d010 for tenth notes)
+|  -  Doesn't do anything and isn't detected by the engine in any way, but this will always be 
+reserved to be used as a bar/separator.
 
 Unknown or malformed commands are ignored.
