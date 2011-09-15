@@ -279,14 +279,16 @@ song *compilesong(char *songstr, int length) {
 		}
 	}
 
+	if(s->first == NULL) {
+		freesong(s);
+		return(NULL);
+	}
 	return(s);
 }
 
-/*
-char *decompilesong(song *s) {
-	char *out;
-	int size;
-
+str *decompilesong(song *s) {
+	str *out;
+	char tnum[] = "000";
 	int octave;
 	int divisor;
 	duration duration;
@@ -295,22 +297,147 @@ char *decompilesong(song *s) {
 	divisor = DEFAULT_DIVISOR;
 	duration = NORMAL;
 
-	if(s->current == NULL) {
+	if(s->current == NULL)
 		return(NULL);
 
-	out = malloc(sizeof(char) * DECOMPILE_BUFFER);
+	out = initstr();
 	if(out == NULL)
 		return(NULL);
 
 	do {
-		if(s->current->note <= REST) {
-			if(s->current->octave != octave) {
-				switch(octave) {
-					case 0;
-						
-				
+		if(s->current->octave != octave && s->current->note != BPM) {
+			if(s->current->octave <= 6) {
+				tnum[0] = '0' + s->current->octave;
+				concatchar(out, tnum, 1);
+				octave = s->current->octave;
+			} else {
+				freestr(out);
+				return(NULL);
+			}
+		}
+		if(s->current->divisor != divisor) {
+			switch(s->current->divisor) {
+				case 1:
+					concatchar(out, "w", 1);
+					break;
+				case 2:
+					concatchar(out, "h", 1);
+					break;
+				case 4:
+					concatchar(out, "q", 1);
+					break;
+				case 8:
+					concatchar(out, "i", 1);
+					break;
+				case 16:
+					concatchar(out, "s", 1);
+					break;
+				case 32:
+					concatchar(out, "t", 1);
+					break;
+				case 64:
+					concatchar(out, "z", 1);
+					break;
+				default:
+					if(s->current->divisor > 999) {
+						freestr(out);
+						return(NULL);
+					}
+					concatchar(out, "*d", 2);
+					tnum[0] = '0' + (s->current->divisor / 100);
+					tnum[1] = '0' + (s->current->divisor / 10 % 10);
+					tnum[2] = '0' + (s->current->divisor % 10);
+					concatchar(out, tnum, 3);
+					break;
+			}
+			divisor = s->current->divisor;
+		}
+		if(s->current->duration != duration) {
+			switch(s->current->duration) {
+				case DOT:
+					concatchar(out, ".", 1);
+					break;
+				case TRIPLET:
+					concatchar(out, "!", 1);
+				 	break;
+				case NORMAL:
+					switch(duration) {
+						case DOT:
+							concatchar(out, ".", 1);
+							break;
+						case TRIPLET:
+							concatchar(out, "!", 1);
+							break;
+						default:
+							freestr(out);
+							return(NULL);
+							break;
+					}
+					break;
+				default:
+					freestr(out);
+					return(NULL);
+					break;
+			}
+			duration = s->current->duration;
+		}
+		switch(s->current->note) {
+			case C:
+				concatchar(out, "c", 1);
+				break;
+			case CSHARP:
+				concatchar(out, "c#", 2);
+				break;
+			case D:
+				concatchar(out, "d", 1);
+				break;
+			case DSHARP:
+				concatchar(out, "d#", 2);
+				break;
+			case E:
+				concatchar(out, "e", 1);
+				break;
+			case F:
+				concatchar(out, "f", 1);
+				break;
+			case FSHARP:
+				concatchar(out, "f#", 2);
+				break;
+			case G:
+				concatchar(out, "g", 1);
+				break;
+			case GSHARP:
+				concatchar(out, "g#", 2);
+				break;
+			case A:
+				concatchar(out, "a", 1);
+				break;
+			case ASHARP:
+				concatchar(out, "a#", 2);
+				break;
+			case B:
+				concatchar(out, "b", 1);
+				break;
+			case REST:
+				concatchar(out, "x", 1);
+				break;
+			case BPM:
+				if(s->current->octave > 999) {
+					freestr(out);
+					return(NULL);
+				}
+				concatchar(out, "*b", 2);
+				tnum[0] = '0' + (s->current->octave / 100);
+				tnum[1] = '0' + (s->current->octave / 10 % 10);
+				tnum[2] = '0' + (s->current->octave % 10);
+				concatchar(out, tnum, 3);
+				break;
+			default:
+				freestr(out);
+				return(NULL);
+				break;
+		}
 	} while(nextcommand(s) == 0);
 
-	return(ret);
+	return(out);
 }
-*/

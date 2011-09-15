@@ -11,6 +11,7 @@
 #include "util.h"
 #include "compile.h"
 #include "output.h"
+#include "str.h"
 
 void statusout(int cur, int max) {
 	fprintf(stderr, "%u/%u\r", cur, max);
@@ -19,11 +20,12 @@ void statusout(int cur, int max) {
 int main(int argc, char **argv) {
 	int speaker;
 	song *s;
+	str *sstr;
 
 	int sndcap;
 
-	if(argc < 3) {
-		fprintf(stderr, "USAGE: %s <path to event device> <music>\n", argv[0]);
+	if(argc < 2) {
+		fprintf(stderr, "USAGE: %s <path to event device>\n", argv[0]);
 		exit(-1);
 	}
 
@@ -43,11 +45,21 @@ int main(int argc, char **argv) {
 		exit(-4);
 	}
 
-	s = compilesong(argv[2], strlen(argv[2]));
+	sstr = initstr();
+	if(sstr == NULL)
+		return(-1);
+
+	sstr = readstream(stdin);
+	s = compilesong(sstr->data, sstr->strsize);
 	if(s == NULL) {
 		fprintf(stderr, "Song compile failed.\n");
-		exit(-1);
+		exit(-5);
 	}
+	freestr(sstr);
+
+	rewindsong(s);
+	sstr = decompilesong(s);
+	fprintf(stderr, "%s\n", sstr->data);
 	rewindsong(s);
 	playsong(speaker, s, statusout);
 	fprintf(stderr, "\n");

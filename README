@@ -15,9 +15,11 @@ should build it for you.  This doesn't depend on anything special that wouldn't 
 
 3. Usage
 
-<name or path to executable> <path to event device> <music string>
+<name or path to executable> <path to event device>
 
-Example: ./pcspkrplay /dev/input/by-path/platform-pcspkr-event-spkr icdefgab+cdefgab+c
+Then the music data should be passed to stdin.
+
+Example: echo "icdefgab+cdefgab+c" | ./pcspkrplay /dev/input/by-path/platform-pcspkr-event-spkr
 
 You must have permission to access /dev/input/by-path/platform-pcspkr-event-spkr, which is 
 usually a symbolic link set up by udev.  This might change some time in the future.  The pcspkr 
@@ -26,7 +28,7 @@ with executing as root:
 modprobe pcspkr
 
 To play from a file, you can call the program like this:
-./pcspkrplay /dev/input/by-path/platform-pcspkr-event-spkr $(cat filename)
+<name or path to executable> <path to event device> < <filename>
 
 This package includes a sample produced by a friend neffy contactable on IRC at irc.rizon.net.
 The file is Stem DJ Shadow.txt, it is a cover of a part of the song Stem by DJ Shadow.

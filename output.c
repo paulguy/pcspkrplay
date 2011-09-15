@@ -1,3 +1,5 @@
+#include <unistd.h>
+#include <time.h>
 #include <linux/input.h>
 
 #include "output.h"
