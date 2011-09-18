@@ -4,8 +4,8 @@ Introduction
 ------------
 
 This program will play PC speaker music in Linux using the Linux input 
-devices API.  Currently loosely based on Megazeux style play 
-statements, but might break on some less compliant play strings.
+devices API.  Currently loosely based on Megazeux style play statements, but
+might break on some less compliant play strings.
 
 
 Compiling
@@ -21,31 +21,30 @@ wouldn't come with linux.
 Usage
 -----
 
-<name or path to executable> <path to event device>
+<executable> <options>
 
-Then the music data should be passed to stdin.
+Options:
+--decompile / -d
+	After compiling, decompile back to music string.  
 
-Example:
-echo "icdefgab+c" | ./pcspkrplay /dev/input/by-path/platform-pcspkr-event-spkr
+--device    / -e device
+	Select event device, default is
+	/dev/input/by-path/platform-pcspkr-event-spkr.
 
-You must have permission to access 
-/dev/input/by-path/platform-pcspkr-event-spkr, which is usually a 
-symbolic link set up by udev.  This might change some time in the 
-future.  The pcspkr driver will also have to have been loaded for this 
-device to appear.  Currently, that's loaded in with executing as root:
-modprobe pcspkr
+--filename  / -f filename
+	Read from filename instead of standard input.
 
-To play from a file, you can call the program like this:
-<name or path to executable> <path to event device> < <filename>
+--quiet     / -q
+	Don't play, only compile (and optionally decompile) then quit.
 
-This package includes a sample produced by a friend neffy contactable 
-on IRC at irc.rizon.net.  The file is Stem DJ Shadow.txt, it is a cover 
-of a part of the song Stem by DJ Shadow.
+--display   / -s
+	Display playback status.
 
-If it complains about permission denied, you have to set the PC speaker 
-device read/writable by your user.  To do this you can just do 
-something this as root:
-chmod a+rw /dev/input/by-path/platform-pcspkr-event-spkr
+--help      / -h
+	Print quick help/usage.
+
+You will need full read/write access to the event device you wish to use.
+Look up the chmod command for information on setting that up.
 
 
 Music String Format
@@ -54,25 +53,47 @@ Music String Format
 Mostly based on Megazeux's play statement format, but extended for more 
 features.
 
-C, D, E, F, G, A, B  -  Play a note
-0, 1, 2, 3, 4, 5, 6  -  Select octave, default 3
-#, $  -  Placed after a note, moves the note up or down a semitone.  B# 
-	is accepted and becomes C on the next octave except for 6B#, E 
-	becomes F, C$ becomes B on the previous octave except for 0C$.
-Z, T, S, I, Q, H, W  -  Select note duration, 64th, 32nd, 16th, 8th, 
-	quarter, half, whole.  Default is 32nd.
-+, -  -  Increase or decrease octave by 1, clips at 0 and 6.
-.  -  Change duration of folloing notes by 150%.  Can be unset with 
-another '.', can override '!'.
-!  -  Change duration of following notes by 1/3.  Can be unset with 
-another '!', can override '.'.
-&string&  -  Ignores string.  Normally used to play a sample, but for 
-this program, you can use it for comments.
-*  -  Extended command
-	b###  -  Change BPM from 0 to 999.  (*b060 for 60 BPM)
-	d###  -  Change to custom note division.  (*d010 for tenth notes)
-|  -  Doesn't do anything and isn't detected by the engine in any way, 
-but this will always be reserved to be used as a bar/separator.
+C, D, E, F, G, A, B
+	Play a note.
+
+0, 1, 2, 3, 4, 5, 6
+	Select octave, default is 3.
+
+#, $
+	Placed after a note, moves the note up or down a semitone.  B# is
+	accepted and becomes C on the next octave except for 6B#, E becomes F, C$
+	becomes B on the previous octave except for 0C$.
+
+Z, T, S, I, Q, H, W
+	Select note duration, 64th, 32nd, 16th, 8th, quarter, half, whole.
+	Default is 32nd.
+
++, -
+	Increase or decrease octave by 1, clips at 0 and 6.                  
+
+.
+	Change duration of folloing notes by 150%.  Can be unset with another
+	'.', can override '!'.
+
+!
+	Change duration of following notes by 1/3.  Can be unset with another
+	'!', can override '.'.
+
+&string&
+	Ignores string.  Normally used to play a sample in Megazeux, but for this
+	program, you can use it for comments.
+
+*
+	Extended command
+	b###
+		Change BPM from 0 to 999.  (*b060 for 60 BPM)
+
+	d###
+		Change to custom note division.  (*d010 for tenth notes)
+
+|
+	Doesn't do anything and isn't detected by the engine in any way, but
+	this will always be reserved to be used as a bar/separator.
 
 Unknown or malformed commands are ignored.
 
