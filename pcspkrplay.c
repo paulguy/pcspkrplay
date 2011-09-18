@@ -152,7 +152,7 @@ int main(int argc, char **argv) {
 	if(decompile == 1) {
 		rewindsong(s);
 		sstr = decompilesong(s);
-		fprintf(stderr, "%s\n", sstr->data);
+		printf("%s\n", sstr->data);
 	}
 	if(playback == 1) {
 		rewindsong(s);

@@ -98,6 +98,46 @@ Z, T, S, I, Q, H, W
 Unknown or malformed commands are ignored.
 
 
+Examples
+--------
+
+echo "cdefgab+c" | ./pcspkrplay
+	Play C major scale at octave 3 with 32nd notes.
+
+echo "q2cdefgab+c" | ./pcspkrplay
+	Play C major scale at octave 2 with quarter notes.
+
+./pcspkrplay -f song.txt
+	Play song.txt.
+
+./pcspkrplay -f song.txt -q --decompile >song_optimized.txt
+	Compile then decompile song, size-optimizing it, but don't play it.
+
+
+Troubleshooting
+---------------
+
+open: No such file or directory
+	Make sure the file exists, and if it's a different name, provide it to
+pcspkrplay using the -e argument.  You might also need to load the PC
+speaker driver, pcspkr with:
+modprobe pcspkr
+
+open: Operation not permitted
+	Make sure you have adequate permission to read and write to the pc
+speaker event device.  If you don't you can use something like this as root:
+chmod a+rw /dev/input/by-path/platform-pcspkr-event-spkr
+NOTE: Running pcspkrplay as root will work but you shouldn't run anything as
+root unless you absolutely cannot avoid it.
+
+ioctl: Inappropriate ioctl for device
+	The device attempted to use isn't a Linux input device.
+
+Device X does not support sound.
+	The input device attempted to use doesn't expose a beeper speaker
+interface.
+
+
 Credits
 -------
 Design and Program - Paul "paulguy"
