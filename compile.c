@@ -213,10 +213,12 @@ song *compilesong(char *songstr, int length) {
 								tmpstr[1] = songstr[pos + 2];
 								tmpstr[2] = songstr[pos + 3];
 								t = atoi(tmpstr);
-								if(t > 0) {
+								if(t > 1) {
 									addnote = 1;
 									note = BPM;
 									data = t;
+								} else {
+									return(NULL);
 								}
 								pos += 3;
 							}
@@ -227,8 +229,10 @@ song *compilesong(char *songstr, int length) {
 								tmpstr[1] = songstr[pos + 2];
 								tmpstr[2] = songstr[pos + 3];
 								t = atoi(tmpstr);
-								if(t > 0) {
+								if(t > 1) {
 									divisor = t;
+								} else {
+									return(NULL);
 								}
 								pos += 3;
 							}
@@ -289,8 +293,8 @@ song *compilesong(char *songstr, int length) {
 str *decompilesong(song *s) {
 	str *out;
 	char tnum[] = "000";
-	int octave;
-	int divisor;
+	unsigned int octave;
+	unsigned int divisor;
 	duration duration;
 
 	octave = DEFAULT_OCTAVE;
@@ -339,7 +343,7 @@ str *decompilesong(song *s) {
 					concatchar(out, "z", 1);
 					break;
 				default:
-					if(s->current->divisor > 999) {
+					if(s->current->divisor > 999 || s->current->divisor < 1) {
 						freestr(out);
 						return(NULL);
 					}
@@ -422,7 +426,7 @@ str *decompilesong(song *s) {
 				concatchar(out, "x", 1);
 				break;
 			case BPM:
-				if(s->current->octave > 999) {
+				if(s->current->octave > 999 || s->current->octave < 1) {
 					freestr(out);
 					return(NULL);
 				}
