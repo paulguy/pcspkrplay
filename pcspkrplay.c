@@ -22,6 +22,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <linux/input.h>
+#include <signal.h>
 
 #include "music.h"
 #include "util.h"
@@ -29,15 +30,18 @@
 #include "output.h"
 #include "str.h"
 
+int speaker;
+
 char DEFAULT_DEVICE[] =  "/dev/input/by-path/platform-pcspkr-event-spkr";
 
 void statusout(int cur, int max);
 void usage(char *name);
+void signalhandler(int signum);
 
 int main(int argc, char **argv) {
 	int i;
+	struct sigaction sa;
 
-	int speaker;
 	int sndcap;
 
 	song *s;
@@ -53,6 +57,18 @@ int main(int argc, char **argv) {
 	decompile = 0;
 	playback = 1;
 	display = 0;
+
+	sa.sa_handler = signalhandler;
+	sigemptyset(&(sa.sa_mask));
+	sa.sa_flags = 0;
+	sigaction(SIGINT, &sa, NULL);
+	sigaction(SIGQUIT, &sa, NULL);
+	sigaction(SIGPIPE, &sa, NULL);
+	sigaction(SIGTERM, &sa, NULL);
+	sa.sa_handler = SIG_IGN;
+	sigaction(SIGHUP, &sa, NULL);
+	sigaction(SIGUSR1, &sa, NULL);
+	sigaction(SIGUSR2, &sa, NULL);
 
 	for(i = 1; i < argc; i++) {
 		if(argv[i][0] == '-') {
@@ -162,6 +178,7 @@ int main(int argc, char **argv) {
 		}
 	}
 
+	close(speaker);
 	exit(0);
 }
 
@@ -181,3 +198,10 @@ Options:\n\
 ", name, DEFAULT_DEVICE);
 	exit(-1);
 }
+
+void signalhandler(int signum) {
+	playnote(speaker, NULL);
+	close(speaker);
+	exit(0);
+}
+
