@@ -68,7 +68,8 @@ int playsong(int fd, song *s, void (*status)(int cur, int max)) {
 
 	i = 1;
 	do {
-		status(i, s->count);
+		if(status != NULL)
+			status(i, s->count);
 
 		if(s->current->note <= REST) {
 			if(playnote(fd, s->current) < 0)

@@ -1,4 +1,4 @@
-PC Speaker Player
+PC Speaker Player - pcspkrplay
 
 Introduction
 ------------
@@ -6,6 +6,8 @@ Introduction
 This program will play PC speaker music in Linux using the Linux input 
 devices API.  Currently loosely based on Megazeux style play statements, but
 might break on some less compliant play strings.
+
+If you were looking to play PCM sound and music through the PC speaker, this isn't what you want.  Look in to the ALSA driver snd-pcsp for that.  It'll make your PC speaker in to a plain old ALSA "card" for programs to output audio to.
 
 
 Compiling

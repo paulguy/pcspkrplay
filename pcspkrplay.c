@@ -31,26 +31,8 @@
 
 char DEFAULT_DEVICE[] =  "/dev/input/by-path/platform-pcspkr-event-spkr";
 
-void statusout(int cur, int max) {
-	fprintf(stderr, "%u/%u\r", cur, max);
-}
-
-void nostatus(int cur, int max) {
-	return;
-}
-
-void usage(char *name) {
-	fprintf(stderr, "USAGE: %s <options>\n\
-Options:\n\
---decompile / -d          - Decompile string, used for outputting size-optimized code.\n\
---device    / -e device   - Select event device, default is %s.\n\
---filename  / -f filename - Read from filename instead of standard input.\n\
---quiet     / -q          - Don't play, only compile (and optionally decompile) then quit.\n\
---display   / -s          - Display playback status.\n\
---help      / -h          - Print help/usage.  Refer to README for more information.\n\
-", name, DEFAULT_DEVICE);
-	exit(-1);
-}
+void statusout(int cur, int max);
+void usage(char *name);
 
 int main(int argc, char **argv) {
 	int i;
@@ -176,9 +158,26 @@ int main(int argc, char **argv) {
 			playsong(speaker, s, statusout);
 			fprintf(stderr, "\n");
 		} else {
-			playsong(speaker, s, nostatus);
+			playsong(speaker, s, NULL);
 		}
 	}
 
 	exit(0);
+}
+
+void statusout(int cur, int max) {
+	fprintf(stderr, "%u/%u\r", cur, max);
+}
+
+void usage(char *name) {
+	fprintf(stderr, "USAGE: %s <options>\n\
+Options:\n\
+--decompile / -d          - Decompile string, used for outputting size-optimized code.\n\
+--device    / -e device   - Select event device, default is %s.\n\
+--filename  / -f filename - Read from filename instead of standard input.\n\
+--quiet     / -q          - Don't play, only compile (and optionally decompile) then quit.\n\
+--display   / -s          - Display playback status.\n\
+--help      / -h          - Print help/usage.  Refer to README for more information.\n\
+", name, DEFAULT_DEVICE);
+	exit(-1);
 }
