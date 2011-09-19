@@ -17,47 +17,106 @@
 #ifndef _MUSIC_H
 #define _MUSIC_H
 
-#define TIMERHZ (596591.0)
+#define DEFAULT_OCTAVE (3)
+#define DEFAULT_DIVISOR (32)
+#define DEFAULT_BPM (50)
+
+#define NOTEREST	(0)
+
+#define NOTECF		(14)
+#define NOTEC		(1)
+#define NOTECS		(2)
+
+#define NOTEDF		(2)
+#define NOTED		(3)
+#define NOTEDS		(4)
+
+#define NOTEEF		(4)
+#define NOTEE		(5)
+#define NOTEES		(6)
+
+#define NOTEFF		(5)
+#define NOTEF		(6)
+#define NOTEFS		(7)
+
+#define NOTEGF		(7)
+#define NOTEG		(8)
+#define NOTEGS		(9)
+
+#define NOTEAF		(9)
+#define NOTEA		(10)
+#define NOTEAS		(11)
+
+#define NOTEBF		(11)
+#define NOTEB		(12)
+#define NOTEBS		(13)
+
+#define REGA		(0)
+#define REGB		(1)
+#define REGC		(2)
+#define REGD		(3)
+#define REGE		(4)
+#define REGF		(5)
+#define REGG		(6)
+#define REGH		(7)
+#define REGI		(8)
+#define REGJ		(9)
+#define REGK		(10)
+#define REGL		(11)
+#define REGM		(12)
+#define REGN		(13)
+#define REGO		(14)
+#define REGP		(15)
+#define REGQ		(16)
+#define REGR		(17)
+#define REGS		(18)
+#define REGT		(19)
+#define REGU		(20)
+#define REGV		(21)
+#define REGW		(22)
+#define REGX		(23)
+#define REGY		(24)
+#define REGZ		(25)
+
+#define REGBPM		REGB
+#define REGDIVISOR	REGD
+#define REGDURATION	REGL
+#define REGOCTAVE	REGO
+
+#define IMMED(x)	(x >> 8 & 0xFF)
+#define IMMEDTOINT(x)	(x << 8)
+#define LETTOREG(x)	(x - 'a')
+
+#define DNORMAL		(0)
+#define DDOT		(1)
+#define DTRIPLET	(2)
 
 typedef enum {
-	C = 0,
-	CSHARP,
-	D,
-	DSHARP,
-	E,
-	F,
-	FSHARP,
-	G,
-	GSHARP,
-	A,
-	ASHARP,
-	B,
-	/* commands for playnote */
-	REST,
+	NOTE,
 	/* commands for playsong */
-	BPM,
-	NEXTC,
-	PREVB,
+	MOV,
+	ADD,
+	SUB,
+	CMP,
+	JNE,
+	JE,
+	JL,
+	JG,
+	JMP,
+	HALT,
+	/* internal instructions */
 	NOTHING
-} note;
-
-typedef enum {
-	NORMAL,
-	DOT,
-	TRIPLET
-} duration;
+} instruction;
 
 typedef struct command {
-	note note;				/* note/command */
-	unsigned int octave;	/* octave, also used as "data" for other commands */
-	unsigned int divisor;	/* note length divisor */
-	duration duration;		/* TRIPLET or DOT */
+	instruction cmd;				/* note/command */
+	unsigned int data;	/* note/data for extended/VM commands */
+	unsigned int reg;	/* register for VM commands */
 	struct command *next;			/* pointer to previous item */
 	struct command *prev;			/* pointer to next item */
 } command;
 
 typedef struct {
-	unsigned int bpm;		/* beats per minute */
 	unsigned int count;		/* number of items (not used for playback) */
 	command *first;			/* first item */
 	command *last;			/* last item */
@@ -74,4 +133,5 @@ command *delcmd(song *s);
 int rewindsong(song *s);
 int nextcommand(song *s);
 int prevcommand(song *s);
+
 #endif

@@ -88,7 +88,7 @@ int main(int argc, char **argv) {
 				else if(strcmp(&(argv[i][2]), "quiet") == 0)
 					arg = 'q';
 				else if(strcmp(&(argv[i][2]), "display") == 0)
-					arg = 'd';
+					arg = 's';
 				else
 					usage(argv[0]);
 			} else {
@@ -163,11 +163,11 @@ int main(int argc, char **argv) {
 		exit(-5);
 	}
 	freestr(sstr);
-	if(decompile == 1) {
+/*	if(decompile == 1) {
 		rewindsong(s);
 		sstr = decompilesong(s);
 		printf("%s\n", sstr->data);
-	}
+	}*/
 	if(playback == 1) {
 		rewindsong(s);
 		if(display == 1) {

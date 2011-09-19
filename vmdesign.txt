@@ -1,0 +1,25 @@
+pcspkrplay VM
+
+26 registers a-z
+o	octave
+d	divisor
+b	BPM
+l	duration
+all overs are general purpose
+
+instructions
+
+n*	note					nr	play note x
+m	move				r	nr	load register x with value/register y
+a	add					r	nr	add y to value/register x
+s	subtract			r	nr	subtract
+c	compare				r	nr	set flags for comparison
+n	jump if not equal		nr	jump to position x if not equal (zero flag unset)
+e	jump if equal			nr	jump to position x if equal (zero flag set)
+g	jump if greater			nr	jump to x if greater than
+l	jump if less			nr	jump to x if less than
+j	jump always				nr	jump to x
+f	clear flags					clear flags from comparison
+h	halt						end execution
+
+note also exists as nonextended commands

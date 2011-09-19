@@ -23,34 +23,29 @@
 
 song *compilesong(char *songstr, int length) {
 	char cur;
-	char tmpstr[4] = {0, 0, 0, 0};
+	char tmpstr[11] = "00000000"; /* maximum number is 16777215 */
 	int t;
 	int pos;
 	song *s;
 	command *c;
 
-	/* long term */
 	int octave;
-	int divisor;
-	duration duration;
 
 	/* transient state */
-	note note;
-	int addnote;
+	int addnew;
+	int cmd;
 	int data; /* ovarrides octave for special commands */
+	int reg;
 
 	s = initsong();
 	if(s == NULL)
 		return(NULL);
 
 	octave = DEFAULT_OCTAVE;
-	divisor = DEFAULT_DIVISOR;
-	duration = NORMAL;
-	s->bpm = DEFAULT_BPM;
 
 	chartolower(songstr, length);
 	for(pos = 0; pos < length; pos++) {
-		addnote = 0;
+		addnew = 0;
 		data = 0;
 
 		cur = songstr[pos];
@@ -58,158 +53,214 @@ song *compilesong(char *songstr, int length) {
 		/* start with larger strings first */
 		if(pos < length - 1) {
 			if(strncmp(&(songstr[pos]), "c#", 2) == 0) {
-				addnote = 1;
-				note = CSHARP;
+				addnew = 1;
+				cmd = NOTE;
+				data = IMMED(NOTECS);
 			} else if(strncmp(&(songstr[pos]), "c$", 2) == 0) {
-				addnote = 1;
-				if(octave == 0) {
-					note = C;
-				} else {
-					note = PREVB;
-				}
+				addnew = 1;
+				cmd = NOTE;
+				data = IMMED(NOTECF);
 			} else if(strncmp(&(songstr[pos]), "d#", 2) == 0) {
-				addnote = 1;
-				note = DSHARP;
+				addnew = 1;
+				cmd = NOTE;
+				data = IMMED(NOTEDS);
 			} else if(strncmp(&(songstr[pos]), "d$", 2) == 0) {
-				addnote = 1;
-				note = CSHARP;
+				addnew = 1;
+				cmd = NOTE;
+				data = IMMED(NOTEDF);
 			} else if(strncmp(&(songstr[pos]), "e#", 2) == 0) {
-				addnote = 1;
-				note = F;
+				addnew = 1;
+				cmd = NOTE;
+				data = IMMED(NOTEES);
 			} else if(strncmp(&(songstr[pos]), "e$", 2) == 0) {
-				addnote = 1;
-				note = DSHARP;
+				addnew = 1;
+				cmd = NOTE;
+				data = IMMED(NOTEEF);
 			} else if(strncmp(&(songstr[pos]), "f#", 2) == 0) {
-				addnote = 1;
-				note = FSHARP;
+				addnew = 1;
+				cmd = NOTE;
+				data = IMMED(NOTEFS);
 			} else if(strncmp(&(songstr[pos]), "f$", 2) == 0) {
-				addnote = 1;
-				note = E;
+				addnew = 1;
+				cmd = NOTE;
+				data = IMMED(NOTEFF);
 			} else if(strncmp(&(songstr[pos]), "g#", 2) == 0) {
-				addnote = 1;
-				note = GSHARP;
+				addnew = 1;
+				cmd = NOTE;
+				data = IMMED(NOTEGS);
 			} else if(strncmp(&(songstr[pos]), "g$", 2) == 0) {
-				addnote = 1;
-				note = FSHARP;
+				addnew = 1;
+				cmd = NOTE;
+				data = IMMED(NOTEGF);
 			} else if(strncmp(&(songstr[pos]), "a#", 2) == 0) {
-				addnote = 1;
-				note = ASHARP;
+				addnew = 1;
+				cmd = NOTE;
+				data = IMMED(NOTEAS);
 			} else if(strncmp(&(songstr[pos]), "a$", 2) == 0) {
-				addnote = 1;
-				note = GSHARP;
+				addnew = 1;
+				cmd = NOTE;
+				data = IMMED(NOTEAF);
 			} else if(strncmp(&(songstr[pos]), "b#", 2) == 0) {
-				addnote = 1;
-				if(octave == 6) {
-					note = C;
-				} else {
-					note = NEXTC;
-				}
+				addnew = 1;
+				cmd = NOTE;
+				data = IMMED(NOTEBS);
 			} else if(strncmp(&(songstr[pos]), "b$", 2) == 0) {
-				addnote = 1;
-				note = ASHARP;
+				addnew = 1;
+				cmd = NOTE;
+				data = IMMED(NOTEBF);
 			}
 		}
-		if(addnote == 1) {
+		if(addnew == 1) {
 			pos++;
 		} else {
 			switch(songstr[pos]) {
 			case 'c':
-				addnote = 1;
-				note = C;
+				addnew = 1;
+				cmd = NOTE;
+				data = IMMED(NOTEC);
 				break;
 			case 'd':
-				addnote = 1;
-				note = D;
+				addnew = 1;
+				cmd = NOTE;
+				data = IMMED(NOTED);
 				break;
 			case 'e':
-				addnote = 1;
-				note = E;
+				addnew = 1;
+				cmd = NOTE;
+				data = IMMED(NOTEE);
 				break;
 			case 'f':
-				addnote = 1;
-				note = F;
+				addnew = 1;
+				cmd = NOTE;
+				data = IMMED(NOTEF);
 				break;
 			case 'g':
-				addnote = 1;
-				note = G;
+				addnew = 1;
+				cmd = NOTE;
+				data = IMMED(NOTEG);
 				break;
 			case 'a':
-				addnote = 1;
-				note = A;
+				addnew = 1;
+				cmd = NOTE;
+				data = IMMED(NOTEA);
 				break;
 			case 'b':
-				addnote = 1;
-				note = B;
+				addnew = 1;
+				cmd = NOTE;
+				data = IMMED(NOTEB);
 				break;
 			case 'x':
-				addnote = 1;
-				note = REST;
+				addnew = 1;
+				cmd = NOTE;
+				data = IMMED(NOTEREST);
 				break;
 			case '0':
-				octave = 0;
+				addnew = 1;
+				cmd = MOV;
+				reg = REGOCTAVE;
+				data = IMMED(0);
 				break;
 			case '1':
-				octave = 1;
+				addnew = 1;
+				cmd = MOV;
+				reg = REGOCTAVE;
+				data = IMMED(1);
 				break;
 			case '2':
-				octave = 2;
+				addnew = 1;
+				cmd = MOV;
+				reg = REGOCTAVE;
+				data = IMMED(2);
 				break;
 			case '3':
-				octave = 3;
+				addnew = 1;
+				cmd = MOV;
+				reg = REGOCTAVE;
+				data = IMMED(3);
 				break;
 			case '4':
-				octave = 4;
+				addnew = 1;
+				cmd = MOV;
+				reg = REGOCTAVE;
+				data = IMMED(4);
 				break;
 			case '5':
-				octave = 5;
+				addnew = 1;
+				cmd = MOV;
+				reg = REGOCTAVE;
+				data = IMMED(5);
 				break;
 			case '6':
-				octave = 6;
+				addnew = 1;
+				cmd = MOV;
+				reg = REGOCTAVE;
+				data = IMMED(6);
 				break;
 			case '-':
-				if(octave > 0) {
-					octave--;
-				}
+				addnew = 1;
+				cmd = SUB;
+				reg = REGOCTAVE;
+				data = IMMED(1);
 				break;
 			case '+':
-				if(octave > 0) {
-					octave++;
-				}
+				addnew = 1;
+				cmd = ADD;
+				reg = REGOCTAVE;
+				data = IMMED(1);
 				break;
 			case 'z':
-				divisor = 64;
+				addnew = 1;
+				cmd = MOV;
+				reg = REGDIVISOR;
+				data = IMMED(64);
 				break;
 			case 't':
-				divisor = 32;
+				addnew = 1;
+				cmd = MOV;
+				reg = REGDIVISOR;
+				data = IMMED(32);
 				break;
 			case 's':
-				divisor = 16;
+				addnew = 1;
+				cmd = MOV;
+				reg = REGDIVISOR;
+				data = IMMED(16);
 				break;
 			case 'i':
-				divisor = 8;
+				addnew = 1;
+				cmd = MOV;
+				reg = REGDIVISOR;
+				data = IMMED(8);
 				break;
 			case 'q':
-				divisor = 4;
+				addnew = 1;
+				cmd = MOV;
+				reg = REGDIVISOR;
+				data = IMMED(4);
 				break;
 			case 'h':
-				divisor = 2;
+				addnew = 1;
+				cmd = MOV;
+				reg = REGDIVISOR;
+				data = IMMED(2);
 				break;
 			case 'w':
-				divisor = 1;
+				addnew = 1;
+				cmd = MOV;
+				reg = REGDIVISOR;
+				data = IMMED(1);
 				break;
 			case '.':
-				if(duration == DOT) {
-					duration = NORMAL;
-				} else {
-					duration = DOT;
-				}
+				addnew = 1;
+				cmd = MOV;
+				reg = REGDURATION;
+				data = IMMED(DDOT);
 				break;
 			case '!':
-				if(duration == TRIPLET) {
-					duration = NORMAL;
-				} else {
-					duration = TRIPLET;
-				}
+				addnew = 1;
+				cmd = MOV;
+				reg = REGDURATION;
+				data = IMMED(DTRIPLET);
 				break;
 			case '&':
 				while(pos < length) {
@@ -224,15 +275,25 @@ song *compilesong(char *songstr, int length) {
 				if(pos < length) {
 					switch(songstr[pos]) {
 						case 'b':
+							if(pos + 1 < length) {
+								if(songstr[pos + 1] >= 'a' && songstr[pos + 1] <= 'z' ) {
+									addnew = 1;
+									cmd = MOV;
+									reg = REGBPM;
+									data = LETTOREG(songstr[pos + 1]);
+								}
+								pos++;
+							}
 							if(pos + 3 < length) {
 								tmpstr[0] = songstr[pos + 1];
 								tmpstr[1] = songstr[pos + 2];
 								tmpstr[2] = songstr[pos + 3];
 								t = atoi(tmpstr);
 								if(t > 1) {
-									addnote = 1;
-									note = BPM;
-									data = t;
+									addnew = 1;
+									cmd = MOV;
+									reg = REGBPM;
+									data = IMMED(t);
 								} else {
 									return(NULL);
 								}
@@ -240,13 +301,25 @@ song *compilesong(char *songstr, int length) {
 							}
 							break;
 						case 'd':
+							if(pos + 1 < length) {
+								if(songstr[pos + 1] >= 'a' && songstr[pos + 1] <= 'z' ) {
+									addnew = 1;
+									cmd = MOV;
+									reg = REGDIVISOR;
+									data = LETTOREG(songstr[pos + 1]);
+								}
+								pos++;
+							}
 							if(pos + 3 < length) {
 								tmpstr[0] = songstr[pos + 1];
 								tmpstr[1] = songstr[pos + 2];
 								tmpstr[2] = songstr[pos + 3];
 								t = atoi(tmpstr);
 								if(t > 1) {
-									divisor = t;
+									addnew = 1;
+									cmd = MOV;
+									reg = REGDIVISOR;
+									data = t;
 								} else {
 									return(NULL);
 								}
@@ -263,38 +336,16 @@ song *compilesong(char *songstr, int length) {
 			}
 		}
 
-		if(addnote == 1) {
+		if(addnew == 1) {
 			c = initcommand();
 			if(c == NULL) {
 				freesong(s);
 				return(NULL);
 			}
 
-			if(data != 0) {
-				c->octave = data;
-			} else {
-				c->octave = octave;
-			}
-			c->divisor = divisor;
-			c->duration = duration;
-			if(note == NEXTC) {
-				if(c->octave == 6) {
-					c->note = B;
-				} else {
-					c->octave++;
-					c->note = C;
-				}
-			} else if(note == PREVB) {
-				if(c->octave == 0) {
-					c->note = C;
-				} else {
-					c->octave--;
-					c->note = B;
-				}
-			} else {
-				c->note = note;
-			}
-
+			c->cmd = cmd;
+			c->data = data;
+			c->reg = reg;
 			addcmd(c, s);
 		}
 	}
@@ -305,7 +356,7 @@ song *compilesong(char *songstr, int length) {
 	}
 	return(s);
 }
-
+/*
 str *decompilesong(song *s) {
 	str *out;
 	char tnum[] = "000";
@@ -461,3 +512,4 @@ str *decompilesong(song *s) {
 
 	return(out);
 }
+*/

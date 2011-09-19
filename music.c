@@ -29,7 +29,6 @@ song *initsong() {
 		return(NULL);
 	}
 
-	s->bpm = 1;
 	s->count = 0;
 	s->first = NULL;
 	s->last = NULL;
@@ -73,10 +72,9 @@ command *initcommand() {
 		return(NULL);
 	}
 
-	c->note = NOTHING;
-	c->octave = 0;
-	c->divisor = 1;
-	c->duration = NORMAL;
+	c->cmd = NOTHING;
+	c->reg = REGA;
+	c->data = IMMED(0);
 	c->prev = NULL;
 	c->next = NULL;
 
