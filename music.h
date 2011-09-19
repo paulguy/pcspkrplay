@@ -103,6 +103,7 @@ typedef enum {
 	JL,
 	JG,
 	JMP,
+	CFL,
 	HALT,
 	/* internal instructions */
 	NOTHING

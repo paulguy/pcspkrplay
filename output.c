@@ -208,6 +208,9 @@ vmexception *playsong(int fd, song *s, void (*status)(int cur, int max)) {
 					THROW(BAD_ARGUMENT);
 				}
 				break;
+			case CFL:
+				vm.flags = 0;
+				break;
 			case HALT:
 				THROW(PROGRAM_ENDED);
 				break;
@@ -246,4 +249,19 @@ vmexception *mkexception(exception ex, vmstate *vm, song *s) {
 	e.s = s;
 
 	return(e);
+}
+
+void printexception(vmexception *e, FILE *out) {
+	int i;
+
+	fprintf(out, "VM EXCEPTION: %s: %s\n", exstr[e.e], extrlong[e.e]);
+	fprintf(out, "REGISTERS:\n");
+	for(i = 0; i < 26; i++)
+		fprintf(out, "  %c: %X", i + 'a', e.vm.regs[i]);
+	fprintf(out, "FLAGS: %X", e.vm.flags);
+	if(e.vm.flags & FLAG_EQUAL)
+		fprintf(out, " EQUAL");
+	if(e.vm.flags & FLAG_GREATER)
+		fprintf(out, " GREATER");
+	fprintf(out, "\n");
 }

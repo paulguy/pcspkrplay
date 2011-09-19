@@ -163,18 +163,20 @@ int main(int argc, char **argv) {
 		exit(-5);
 	}
 	freestr(sstr);
-/*	if(decompile == 1) {
+/*
+	if(decompile == 1) {
 		rewindsong(s);
 		sstr = decompilesong(s);
 		printf("%s\n", sstr->data);
-	}*/
+	}
+*/
 	if(playback == 1) {
 		rewindsong(s);
 		if(display == 1) {
 			playsong(speaker, s, statusout);
 			fprintf(stderr, "\n");
 		} else {
-			playsong(speaker, s, NULL);
+			printexception(playsong(speaker, s, NULL), stderr);
 		}
 	}
 

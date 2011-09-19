@@ -62,5 +62,6 @@ typedef struct vmexception {
 int playnote(int fd, int note, int octave);
 vmexception *playsong(int fd, song *s, void (*status)(int cur, int max));
 vmexception *mkexception(exception ex, vmstate *vm, song *s);
+void printexception(vmexception *e, FILE *out);
 
 #endif
