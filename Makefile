@@ -1,27 +1,12 @@
-all: pcspkrplay
+OBJS   = compile.o music.o pcspkrplay.o util.o output.o str.o
+TARGET = pcspkrplay
 
-pcspkrplay: compile.o music.o pcspkrplay.o util.o output.o str.o
-	$(CC) $(LDFLAGS) -o $@ $^
+$(TARGET): $(OBJS)
+	$(CC) $(LDFLAGS) -o $(TARGET) $(OBJS)
 
-compile.o: compile.c
-	$(CC) $(CFLAGS) -c -o $@ $<
-
-music.o: music.c
-	$(CC) $(CFLAGS) -c -o $@ $<
-
-pcspkrplay.o: pcspkrplay.c
-	$(CC) $(CFLAGS) -c -o $@ $<
-
-util.o: util.c
-	$(CC) $(CFLAGS) -c -o $@ $<
-
-output.o: output.c
-	$(CC) $(CFLAGS) -c -o $@ $<
-
-str.o: str.c
-	$(CC) $(CFLAGS) -c -o $@ $<
+all: $(TARGET)
 
 clean:
-	rm -f compile.o music.o pcspkrplay.o util.o output.o str.o pcspkrplay
+	rm -f $(TARGET) $(OBJS)
 
 .PHONY: clean
