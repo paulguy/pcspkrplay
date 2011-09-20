@@ -72,7 +72,7 @@ command *initcommand() {
 		return(NULL);
 	}
 
-	c->cmd = NOTHING;
+	c->cmd = NOP;
 	c->reg = REGA;
 	c->data = IMMED(0);
 	c->prev = NULL;

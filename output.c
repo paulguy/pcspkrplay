@@ -14,6 +14,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include <stdlib.h>
 #include <unistd.h>
 #include <time.h>
 #include <linux/input.h>
@@ -21,6 +22,42 @@
 #include "output.h"
 
 #include "freqs.h"
+
+char exstr[7][20] = {
+	"PROGRAM_ENDED",
+	"ILLEGAL_INSTRUCTION",
+	"BAD_ARGUMENT",
+	"BAD_REGISTER",
+	"DEVICE_ERROR",
+	"VM_ERROR",
+	"BREAKPOINT"
+};
+
+char exstrlong[7][52] = {
+	"The program reached it's end with no error.",
+	"An illegal instruction was encountered.",
+	"A bad value was used in the argument field.",
+	"A nonexistent register was attempted to be used.",
+	"An error with a device occurred.",
+	"An error in the VM occurred.",
+	"A breakpoint was reached."
+};
+
+char cmdstr[13][8] = {
+	"NOTE",
+	"MOV",
+	"ADD",
+	"SUB",
+	"CMP",
+	"JNE",
+	"JE",
+	"JL",
+	"JG",
+	"JMP",
+	"CFL",
+	"HALT",
+	"NOP"
+};
 
 int playnote(int fd, int note, int octave) {
 	struct input_event ev;
@@ -32,7 +69,7 @@ int playnote(int fd, int note, int octave) {
 			note = NOTEB;
 			if(octave > 0)
 				octave--;
-		} else if(note = NOTEBS) {
+		} else if(note == NOTEBS) {
 			note = NOTEC;
 			if(octave < 6)
 				octave++;
@@ -46,38 +83,34 @@ int playnote(int fd, int note, int octave) {
 	return(0);
 }
 
-vmexception *playsong(int fd, song *s, void (*status)(int cur, int max)) {
+vmexception playsong(int fd, song *s, vmstate *vm, void (*status)(int cur, int max), int step) {
 	int i;
 	struct timespec req, rem;
 	unsigned long int notelen;
-	struct vmstate vm;
-
 	unsigned int t;
-
-	for(i = 0; i < 26; i++) {
-		vm.regs = 0;
-	}
-	vm.flags = 0;
-
-	vm.regs[REGOCTAVE] = 3;
-	vm.regs[REGDIVISOR] = 32;
-	vm.regs[REGBPM] = 50;
-	vm.regs[REGDURATION] = DNORMAL;
 
 	i = 1;
 	do {
 		if(status != NULL)
 			status(i, s->count);
 
-		switch(s->current->instruction) {
+		switch(s->current->cmd) {
 			case NOTE:
-				if(playnote(fd, s->current->data, vm.regs[REGOCTAVE]) < 0)
-					THROW(DEVICE_ERROR);
+					if((s->current->data & 0xFF) == 0xFF) {
+						t = IMMEDTOINT(s->current->data);
+						if(playnote(fd, IMMEDTOINT(s->current->data), vm->regs[REGOCTAVE]) < 0)
+							return(DEVICE_ERROR);
+					} else if(s->current->data < 26) {
+						if(playnote(fd, s->current->data, vm->regs[REGOCTAVE]) < 0)
+							return(DEVICE_ERROR);
+					} else {
+						return(BAD_ARGUMENT);
+					}
 
-				notelen = 60000000000ul / s->bpm / s->current->divisor;
-				if(s->current->duration == DOT) {
+				notelen = 60000000000ul / vm->regs[REGBPM] / vm->regs[REGDIVISOR];
+				if(vm->regs[REGDURATION] == DDOT) {
 					notelen = notelen * 3 / 2;
-				} else if(s->current->duration == TRIPLET) {
+				} else if(vm->regs[REGDURATION] == DTRIPLET) {
 					notelen = notelen / 3;
 				}
 				req.tv_sec = notelen / 1000000000ul;
@@ -90,178 +123,200 @@ vmexception *playsong(int fd, song *s, void (*status)(int cur, int max)) {
 				break;
 			case MOV:
 				if(s->current->reg < 26) {
-					if(s->current->data & 0xFF == 0xFF) {
-						t = IMMEDTOINT(s->current->data);
-						vm.regs[s->current->reg] = t;
+					if((s->current->data & 0xFF) == 0xFF) {
+						vm->regs[s->current->reg] = IMMEDTOINT(s->current->data);
 					} else if(s->current->data < 26) {
-						vm.regs[s->current->reg] = vm.regs[s->current->data];
+						vm->regs[s->current->reg] = vm->regs[s->current->data];
 					} else {
-						THROW(BAD_ARGUMENT);
+						return(BAD_ARGUMENT);
 					}
 				} else {
-					THROW(BAD_REGISTER);
+					return(BAD_REGISTER);
 				}
+				if(vm->regs[REGOCTAVE] > 6)
+					vm->regs[REGOCTAVE] = 6;
+				if(vm->regs[REGDIVISOR] < 1)
+					vm->regs[REGDIVISOR] = 1;
 				break;
 			case ADD:
 				if(s->current->reg < 26) {
-					if(s->current->data & 0xFF == 0xFF) {
-						t = IMMEDTOINT(s->current->data);
-						vm.regs[s->current->reg] += t;
+					if((s->current->data & 0xFF) == 0xFF) {
+						vm->regs[s->current->reg] += IMMEDTOINT(s->current->data);
 					} else if(s->current->data < 26) {
-						vm.regs[s->current->reg] += vm.regs[s->current->data];
+						vm->regs[s->current->reg] += vm->regs[s->current->data];
 					} else {
-						THROW(BAD_ARGUMENT);
+						return(BAD_ARGUMENT);
 					}
 				} else {
-					THROW(BAD_REGISTER);
+					return(BAD_REGISTER);
 				}
+				if(vm->regs[REGOCTAVE] > 6)
+					vm->regs[REGOCTAVE] = 6;
 				break;
 			case SUB:
 				if(s->current->reg < 26) {
-					if(s->current->data & 0xFF == 0xFF) {
-						t = IMMEDTOINT(s->current->data);
-						vm.regs[s->current->reg] -= t;
+					if((s->current->data & 0xFF) == 0xFF) {
+						vm->regs[s->current->reg] -= IMMEDTOINT(s->current->data);
 					} else if(s->current->data < 26) {
-						vm.regs[s->current->reg] -= vm.regs[s->current->data];
+						vm->regs[s->current->reg] -= vm->regs[s->current->data];
 					} else {
-						THROW(BAD_ARGUMENT);
+						return(BAD_ARGUMENT);
 					}
 				} else {
-					THROW(BAD_REGISTER);
+					return(BAD_REGISTER);
 				}
+				if(vm->regs[REGDIVISOR] < 1)
+					vm->regs[REGDIVISOR] = 1;
 				break;
 			case CMP:
 				if(s->current->reg < 26) {
-					if(s->current->data & 0xFF == 0xFF) {
+					if((s->current->data & 0xFF) == 0xFF) {
 						t = IMMEDTOINT(s->current->data);
-						if(t > vm.regs[s->current->reg])
-							vm.flags |= FLAG_GREATER;
-						if(t == vm.regs[s->current->reg])
-							vm.flags |= FLAG_EQUALS;
+						if(t > vm->regs[s->current->reg])
+							vm->flags |= FLAG_GREATER;
+						if(t == vm->regs[s->current->reg])
+							vm->flags |= FLAG_EQUAL;
 					} else if(s->current->data < 26) {
-						if(vm.regs[s->current->data] > vm.regs[s->current->reg])
-							vm.flags |= FLAG_GREATER;
-						if(vm.regs[s->current->data] == vm.regs[s->current->reg])
-							vm.flags |= FLAG_EQUALS;
+						if(vm->regs[s->current->data] > vm->regs[s->current->reg])
+							vm->flags |= FLAG_GREATER;
+						if(vm->regs[s->current->data] == vm->regs[s->current->reg])
+							vm->flags |= FLAG_EQUAL;
 					} else {
-						THROW(BAD_ARGUMENT);
+						return(BAD_ARGUMENT);
 					}
 				} else {
-					THROW(BAD_REGISTER);
+					return(BAD_REGISTER);
 				}
 				break;
 			case JNE:
-				if(s->current->data & 0xFF == 0xFF) {
+				if((s->current->data & 0xFF) == 0xFF) {
 					t = IMMEDTOINT(s->current->data);
-					if(!(vm.flags & FLAG_EQUALS))
-						seeksong(s, t)
+					if(!(vm->flags & FLAG_EQUAL))
+						seeksong(s, t);
 				} else if(s->current->data < 26) {
-					if(!(vm.flags & FLAG_EQUALS))
-						seeksong(s, vm.regs[s->current->data])
+					if(!(vm->flags & FLAG_EQUAL))
+						seeksong(s, vm->regs[s->current->data]);
 				} else {
-					THROW(BAD_ARGUMENT);
+					return(BAD_ARGUMENT);
 				}
 				break;
 			case JE:
-				if(s->current->data & 0xFF == 0xFF) {
+				if((s->current->data & 0xFF) == 0xFF) {
 					t = IMMEDTOINT(s->current->data);
-					if(vm.flags & FLAG_EQUALS)
-						seeksong(s, t)
+					if(vm->flags & FLAG_EQUAL)
+						seeksong(s, t);
 				} else if(s->current->data < 26) {
-					if(vm.flags & FLAG_EQUALS)
-						seeksong(s, vm.regs[s->current->data])
+					if(vm->flags & FLAG_EQUAL)
+						seeksong(s, vm->regs[s->current->data]);
 				} else {
-					THROW(BAD_ARGUMENT);
+					return(BAD_ARGUMENT);
 				}
 				break;
 			case JL:
-				if(s->current->data & 0xFF == 0xFF) {
+				if((s->current->data & 0xFF) == 0xFF) {
 					t = IMMEDTOINT(s->current->data);
-					if(!(vm.flags & FLAG_GREATER))
-						seeksong(s, t)
+					if(!(vm->flags & FLAG_GREATER))
+						seeksong(s, t);
 				} else if(s->current->data < 26) {
-					if(!(vm.flags & FLAG_GREATER))
-						seeksong(s, vm.regs[s->current->data])
+					if(!(vm->flags & FLAG_GREATER))
+						seeksong(s, vm->regs[s->current->data]);
 				} else {
-					THROW(BAD_ARGUMENT);
+					return(BAD_ARGUMENT);
 				}
 				break;
 			case JG:
-				if(s->current->data & 0xFF == 0xFF) {
+				if((s->current->data & 0xFF) == 0xFF) {
 					t = IMMEDTOINT(s->current->data);
-					if(vm.flags & FLAG_GREATER)
-						seeksong(s, t)
+					if(vm->flags & FLAG_GREATER)
+						seeksong(s, t);
 				} else if(s->current->data < 26) {
-					if(vm.flags & FLAG_GREATER)
-						seeksong(s, vm.regs[s->current->data])
+					if(vm->flags & FLAG_GREATER)
+						seeksong(s, vm->regs[s->current->data]);
 				} else {
-					THROW(BAD_ARGUMENT);
+					return(BAD_ARGUMENT);
 				}
 				break;
 			case JMP:
-				if(s->current->data & 0xFF == 0xFF) {
+				if((s->current->data & 0xFF) == 0xFF) {
 					t = IMMEDTOINT(s->current->data);
-					seeksong(s, t)
+					seeksong(s, t);
 				} else if(s->current->data < 26) {
-					seeksong(s, vm.regs[s->current->data])
+					seeksong(s, vm->regs[s->current->data]);
 				} else {
-					THROW(BAD_ARGUMENT);
+					return(BAD_ARGUMENT);
 				}
 				break;
 			case CFL:
-				vm.flags = 0;
+				vm->flags = 0;
 				break;
 			case HALT:
-				THROW(PROGRAM_ENDED);
+				return(PROGRAM_ENDED);
 				break;
 			default:
-				THROW(ILLEGAL_INSTRUCTION);
+				return(ILLEGAL_INSTRUCTION);
 				break;
-		}
-
-		} else {
-			switch(s->current->note) {
-				case BPM:
-					s->bpm = s->current->octave;
-					break;
-				default:
-					break;
-			}
 		}
 
 		i++;
+		if(step == 1) {
+			if(nextcommand(s) == 1)
+				break;
+			return(BREAKPOINT);
+		}
 	} while(nextcommand(s) == 0);
 
 	if(playnote(fd, 0, 0) < 0)
-		return(-1);
-	THROW(PROGRAM_ENDED);
+		return(DEVICE_ERROR);
+	return(PROGRAM_ENDED);
 }
 
-vmexception *mkexception(exception ex, vmstate *vm, song *s) {
-	vmexception *e;
-
-	e = malloc(sizeof(vmexception));
-	if(e == NULL)
-		return(NULL);
-
-	e.e = ex;
-	e.vm = vm;
-	e.s = s;
-
-	return(e);
-}
-
-void printexception(vmexception *e, FILE *out) {
+void printexception(vmexception e, song *s, vmstate *vm, FILE *out) {
 	int i;
 
-	fprintf(out, "VM EXCEPTION: %s: %s\n", exstr[e.e], extrlong[e.e]);
-	fprintf(out, "REGISTERS:\n");
-	for(i = 0; i < 26; i++)
-		fprintf(out, "  %c: %X", i + 'a', e.vm.regs[i]);
-	fprintf(out, "FLAGS: %X", e.vm.flags);
-	if(e.vm.flags & FLAG_EQUAL)
-		fprintf(out, " EQUAL");
-	if(e.vm.flags & FLAG_GREATER)
-		fprintf(out, " GREATER");
-	fprintf(out, "\n");
+	fprintf(out, "VM EXCEPTION: %s: %s\n", exstr[e], exstrlong[e]);
+	if(e != VM_ERROR) {
+		fprintf(out, "REGISTERS:\n");
+		for(i = 0; i < 26; i++)
+			fprintf(out, "  %c: %X", REGTOLET(i), vm->regs[i]);
+		fprintf(out, "\n");
+		fprintf(out, "FLAGS: %X", vm->flags);
+		if(vm->flags & FLAG_EQUAL)
+			fprintf(out, " EQUAL");
+		if(vm->flags & FLAG_GREATER)
+			fprintf(out, " GREATER");
+		fprintf(out, "\n");
+	} else {
+		fprintf(out, "VM state may be inconsistent.\n");
+	}
+	fprintf(out, "INSTRUCTION:\n");
+	if(s->current != NULL) {
+		fprintf(out, "  CMD: %s  REG: %c", cmdstr[s->current->cmd], REGTOLET(s->current->reg));
+		if((s->current->data & 0xFF) == 0xFF)
+			fprintf(out, "  DATA: %x\n", IMMEDTOINT(s->current->data));
+		else
+			fprintf(out, "  REG: %c\n", REGTOLET(s->current->data));
+	} else {
+		fprintf(out, "At end of song or song is corrupted.\n");
+	}
+}
+
+vmstate *initvm() {
+	int i;
+	vmstate *vm;
+
+	vm = malloc(sizeof(vmstate));
+	if(vm == NULL)
+		return(NULL);
+
+	for(i = 0; i < 26; i++) {
+		vm->regs[i] = 0;
+	}
+	vm->flags = 0;
+
+	vm->regs[REGOCTAVE] = DEFAULT_OCTAVE;
+	vm->regs[REGDIVISOR] = DEFAULT_DIVISOR;
+	vm->regs[REGBPM] = DEFAULT_BPM;
+	vm->regs[REGDURATION] = DNORMAL;
+
+	return(vm);
 }

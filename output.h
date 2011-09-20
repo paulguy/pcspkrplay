@@ -17,10 +17,10 @@
 #ifndef _OUTPUT_H
 #define _OUTPUT_H
 
-#define THROW(x) return(mkexception(x, vm, s)
-
 #define FLAG_EQUAL		(1)
 #define FLAG_GREATER	(2)
+
+#include <stdio.h>
 
 #include "music.h"
 
@@ -34,34 +34,14 @@ typedef enum {
 	ILLEGAL_INSTRUCTION,
 	BAD_ARGUMENT,
 	BAD_REGISTER,
-	DEVICE_ERROR
-} exceptions;
-
-char exstr[5][20] = {
-	"PROGRAM_ENDED",
-	"ILLEGAL_INSTRUCTION",
-	"BAD_ARGUMENT",
-	"BAD_REGISTER",
-	"DEVICE_ERROR"
-};
-
-char exstrlong[5][52] = {
-	"The program reached it's end with no error.",
-	"An illegal instruction was encountered.",
-	"A bad value was used in the argument field.",
-	"A nonexistent register was attempted to be used.",
-	"An error with a device occurred."
-};
-
-typedef struct vmexception {
-	exceptions e;
-	vmstate *vm;
-	song *s;
+	DEVICE_ERROR,
+	VM_ERROR,
+	BREAKPOINT
 } vmexception;
 
 int playnote(int fd, int note, int octave);
-vmexception *playsong(int fd, song *s, void (*status)(int cur, int max));
-vmexception *mkexception(exception ex, vmstate *vm, song *s);
-void printexception(vmexception *e, FILE *out);
+vmexception playsong(int fd, song *s, vmstate *vm, void (*status)(int cur, int max), int step);
+void printexception(vmexception e, song *s, vmstate *vm, FILE *out);
+vmstate *initvm();
 
 #endif

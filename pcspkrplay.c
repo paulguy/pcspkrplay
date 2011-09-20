@@ -46,29 +46,20 @@ int main(int argc, char **argv) {
 
 	song *s;
 	str *sstr;
+	vmexception e;
+	vmstate *vm;
 
 	char arg;
 	char *device;
 	FILE *in;
-	int decompile, playback, display;
+	int decompile, playback, display, debug;
 
 	device = DEFAULT_DEVICE;
 	in = stdin;
 	decompile = 0;
 	playback = 1;
 	display = 0;
-
-	sa.sa_handler = signalhandler;
-	sigemptyset(&(sa.sa_mask));
-	sa.sa_flags = 0;
-	sigaction(SIGINT, &sa, NULL);
-	sigaction(SIGQUIT, &sa, NULL);
-	sigaction(SIGPIPE, &sa, NULL);
-	sigaction(SIGTERM, &sa, NULL);
-	sa.sa_handler = SIG_IGN;
-	sigaction(SIGHUP, &sa, NULL);
-	sigaction(SIGUSR1, &sa, NULL);
-	sigaction(SIGUSR2, &sa, NULL);
+	debug = 0;
 
 	for(i = 1; i < argc; i++) {
 		if(argv[i][0] == '-') {
@@ -89,7 +80,10 @@ int main(int argc, char **argv) {
 					arg = 'q';
 				else if(strcmp(&(argv[i][2]), "display") == 0)
 					arg = 's';
-				else
+				else if(strcmp(&(argv[i][2]), "debug") == 0) {
+					debug = 1;
+					arg = '\0';
+				} else
 					usage(argv[0]);
 			} else {
 				arg = argv[i][1];
@@ -125,6 +119,8 @@ int main(int argc, char **argv) {
 					break;
 				case 's':
 					display = 1;
+					break;
+				case '\0':
 					break;
 				case 'h':
 				default:
@@ -171,12 +167,39 @@ int main(int argc, char **argv) {
 	}
 */
 	if(playback == 1) {
+		vm = initvm();
+		if(vm == NULL)
+			exit(-1);
 		rewindsong(s);
-		if(display == 1) {
-			playsong(speaker, s, statusout);
-			fprintf(stderr, "\n");
+
+		sa.sa_handler = signalhandler;
+		sigemptyset(&(sa.sa_mask));
+		sa.sa_flags = 0;
+		sigaction(SIGINT, &sa, NULL);
+		sigaction(SIGQUIT, &sa, NULL);
+		sigaction(SIGPIPE, &sa, NULL);
+		sigaction(SIGTERM, &sa, NULL);
+		sa.sa_handler = SIG_IGN;
+		sigaction(SIGHUP, &sa, NULL);
+		sigaction(SIGUSR1, &sa, NULL);
+		sigaction(SIGUSR2, &sa, NULL);
+
+		if(debug != 0) {
+			while(debug == 1) {
+				e = playsong(speaker, s, vm, NULL, 1);
+				printexception(e, s, vm, stderr);
+				if(e == PROGRAM_ENDED)
+					debug = 0;
+			}
 		} else {
-			printexception(playsong(speaker, s, NULL), stderr);
+			if(display == 1) {
+				playsong(speaker, s, vm, statusout, 0);
+				fprintf(stderr, "\n");
+			} else {
+				e = playsong(speaker, s, vm, NULL, 0);
+				if(e != PROGRAM_ENDED)
+					printexception(e, s, vm, stderr);
+			}
 		}
 	}
 
@@ -202,7 +225,7 @@ Options:\n\
 }
 
 void signalhandler(int signum) {
-	playnote(speaker, NULL);
+	playnote(speaker, 0, 0);
 	close(speaker);
 	exit(0);
 }

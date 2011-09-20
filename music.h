@@ -83,16 +83,17 @@
 #define REGDURATION	REGL
 #define REGOCTAVE	REGO
 
-#define IMMED(x)	(x >> 8 & 0xFF)
-#define IMMEDTOINT(x)	(x << 8)
+#define IMMED(x)	(x << 8 | 0xFF)
+#define IMMEDTOINT(x)	(x >> 8)
 #define LETTOREG(x)	(x - 'a')
+#define REGTOLET(x) (x + 'a')
 
 #define DNORMAL		(0)
 #define DDOT		(1)
 #define DTRIPLET	(2)
 
 typedef enum {
-	NOTE,
+	NOTE = 0,
 	/* commands for playsong */
 	MOV,
 	ADD,
@@ -106,7 +107,7 @@ typedef enum {
 	CFL,
 	HALT,
 	/* internal instructions */
-	NOTHING
+	NOP
 } instruction;
 
 typedef struct command {

@@ -29,8 +29,6 @@ song *compilesong(char *songstr, int length) {
 	song *s;
 	command *c;
 
-	int octave;
-
 	/* transient state */
 	int addnew;
 	int cmd;
@@ -41,11 +39,11 @@ song *compilesong(char *songstr, int length) {
 	if(s == NULL)
 		return(NULL);
 
-	octave = DEFAULT_OCTAVE;
-
 	chartolower(songstr, length);
 	for(pos = 0; pos < length; pos++) {
 		addnew = 0;
+		cmd = 0;
+		reg = 0;
 		data = 0;
 
 		cur = songstr[pos];
@@ -281,23 +279,25 @@ song *compilesong(char *songstr, int length) {
 									cmd = MOV;
 									reg = REGBPM;
 									data = LETTOREG(songstr[pos + 1]);
-								}
-								pos++;
-							}
-							if(pos + 3 < length) {
-								tmpstr[0] = songstr[pos + 1];
-								tmpstr[1] = songstr[pos + 2];
-								tmpstr[2] = songstr[pos + 3];
-								t = atoi(tmpstr);
-								if(t > 1) {
-									addnew = 1;
-									cmd = MOV;
-									reg = REGBPM;
-									data = IMMED(t);
+									pos++;
+								} else if(pos + 3 < length) {
+									tmpstr[0] = songstr[pos + 1];
+									tmpstr[1] = songstr[pos + 2];
+									tmpstr[2] = songstr[pos + 3];
+									tmpstr[3] = '\0';
+									t = atoi(tmpstr);
+									if(t > 1) {
+										addnew = 1;
+										cmd = MOV;
+										reg = REGBPM;
+										data = IMMED(t);
+									} else {
+										return(NULL);
+									}
+									pos += 3;
 								} else {
 									return(NULL);
 								}
-								pos += 3;
 							}
 							break;
 						case 'd':
@@ -307,23 +307,25 @@ song *compilesong(char *songstr, int length) {
 									cmd = MOV;
 									reg = REGDIVISOR;
 									data = LETTOREG(songstr[pos + 1]);
-								}
-								pos++;
-							}
-							if(pos + 3 < length) {
-								tmpstr[0] = songstr[pos + 1];
-								tmpstr[1] = songstr[pos + 2];
-								tmpstr[2] = songstr[pos + 3];
-								t = atoi(tmpstr);
-								if(t > 1) {
-									addnew = 1;
-									cmd = MOV;
-									reg = REGDIVISOR;
-									data = t;
+									pos++;
+								} else if(pos + 3 < length) {
+									tmpstr[0] = songstr[pos + 1];
+									tmpstr[1] = songstr[pos + 2];
+									tmpstr[2] = songstr[pos + 3];
+									tmpstr[3] = '\0';
+									t = atoi(tmpstr);
+									if(t > 1) {
+										addnew = 1;
+										cmd = MOV;
+										reg = REGDIVISOR;
+										data = t;
+									} else {
+										return(NULL);
+									}
+									pos += 3;
 								} else {
 									return(NULL);
 								}
-								pos += 3;
 							}
 							break;
 						default:
