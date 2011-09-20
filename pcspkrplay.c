@@ -220,6 +220,7 @@ Options:\n\
 --quiet     / -q          - Don't play, only compile (and optionally decompile) then quit.\n\
 --display   / -s          - Display playback status.\n\
 --help      / -h          - Print help/usage.  Refer to README for more information.\n\
+--debug                   - Enable debug mode.\n\
 ", name, DEFAULT_DEVICE);
 	exit(-1);
 }
