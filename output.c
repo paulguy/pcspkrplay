@@ -43,7 +43,7 @@ char exstrlong[7][52] = {
 	"A breakpoint was reached."
 };
 
-char cmdstr[17][8] = {
+char cmdstr[22][8] = {
 	"NOTE",
 	"MOV",
 	"ADD",
@@ -56,10 +56,15 @@ char cmdstr[17][8] = {
 	"JMP",
 	"BRA",
 	"RET",
-	"PUSH",
-	"POP",
 	"CFL",
 	"HALT",
+	"LABEL",
+	"JNEL",
+	"JEL",
+	"JLL",
+	"JGL",
+	"JMPL",
+	"BRAL",
 	"NOP"
 };
 
@@ -278,6 +283,110 @@ vmexception playsong(int fd, song *s, vmstate *vm, void (*status)(int cur, int m
 					return(BAD_ARGUMENT);
 				}
 				break;
+			case JNEL:
+				if((s->current->data & 0xFF) == 0xFF) {
+					if(!(vm->flags & FLAG_EQUAL)) {
+						t = IMMEDTOINT(s->current->data);
+						if(t > s->nlabels)
+							return(BAD_ARGUMENT);
+						seeksong(s, s->labels[t]);
+					}
+				} else if(s->current->data < 26) {
+					if(!(vm->flags & FLAG_EQUAL)) {
+						if(vm->regs[s->current->data] > s->nlabels)
+							return(BAD_ARGUMENT);
+						seeksong(s, s->labels[vm->regs[s->current->data]]);
+					}
+				} else {
+					return(BAD_ARGUMENT);
+				}
+				break;
+			case JEL:
+				if((s->current->data & 0xFF) == 0xFF) {
+					if(vm->flags & FLAG_EQUAL) {
+						t = IMMEDTOINT(s->current->data);
+						if(t > s->nlabels)
+							return(BAD_ARGUMENT);
+						seeksong(s, s->labels[t]);
+					}
+				} else if(s->current->data < 26) {
+					if(vm->flags & FLAG_EQUAL) {
+						if(vm->regs[s->current->data] > s->nlabels)
+							return(BAD_ARGUMENT);
+						seeksong(s, s->labels[vm->regs[s->current->data]]);
+					}
+				} else {
+					return(BAD_ARGUMENT);
+				}
+				break;
+			case JLL:
+				if((s->current->data & 0xFF) == 0xFF) {
+					if(!(vm->flags & FLAG_GREATER)) {
+						t = IMMEDTOINT(s->current->data);
+						if(t > s->nlabels)
+							return(BAD_ARGUMENT);
+						seeksong(s, s->labels[t]);
+					}
+				} else if(s->current->data < 26) {
+					if(!(vm->flags & FLAG_GREATER)) {
+						if(vm->regs[s->current->data] > s->nlabels)
+							return(BAD_ARGUMENT);
+						seeksong(s, s->labels[vm->regs[s->current->data]]);
+					}
+				} else {
+					return(BAD_ARGUMENT);
+				}
+				break;
+			case JGL:
+				if((s->current->data & 0xFF) == 0xFF) {
+					if(vm->flags & FLAG_GREATER) {
+						t = IMMEDTOINT(s->current->data);
+						if(t > s->nlabels)
+							return(BAD_ARGUMENT);
+						seeksong(s, s->labels[t]);
+					}
+				} else if(s->current->data < 26) {
+					if(vm->flags & FLAG_GREATER) {
+						if(vm->regs[s->current->data] > s->nlabels)
+							return(BAD_ARGUMENT);
+						seeksong(s, s->labels[vm->regs[s->current->data]]);
+					}
+				} else {
+					return(BAD_ARGUMENT);
+				}
+				break;
+			case JMPL:
+				if((s->current->data & 0xFF) == 0xFF) {
+					t = IMMEDTOINT(s->current->data);
+					if(t > s->nlabels)
+						return(BAD_ARGUMENT);
+					seeksong(s, s->labels[t]);
+				} else if(s->current->data < 26) {
+ 					if(vm->regs[s->current->data] > s->nlabels)
+						return(BAD_ARGUMENT);
+					seeksong(s, s->labels[vm->regs[s->current->data]]);
+				} else {
+					return(BAD_ARGUMENT);
+				}
+				break;
+			case BRAL:
+				if(s->current->next == NULL)
+					return(ILLEGAL_INSTRUCTION);
+				vm->stack[vm->sp] = s->current->next;
+				vm->sp++;
+				if((s->current->data & 0xFF) == 0xFF) {
+					t = IMMEDTOINT(s->current->data);
+					if(t > s->nlabels)
+						return(BAD_ARGUMENT);
+					seeksong(s, s->labels[t]);
+				} else if(s->current->data < 26) {
+ 					if(vm->regs[s->current->data] > s->nlabels)
+						return(BAD_ARGUMENT);
+					seeksong(s, s->labels[vm->regs[s->current->data]]);
+				} else {
+					return(BAD_ARGUMENT);
+				}
+				break;
 			case RET:
 				if(vm->sp == 0)
 					return(ILLEGAL_INSTRUCTION);
@@ -289,6 +398,8 @@ vmexception playsong(int fd, song *s, vmstate *vm, void (*status)(int cur, int m
 				break;
 			case HALT:
 				running = 0;
+				break;
+			case LABEL:
 				break;
 			default:
 				return(ILLEGAL_INSTRUCTION);

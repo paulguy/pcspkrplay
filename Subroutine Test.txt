@@ -1,0 +1,16 @@
+q &Set notes to quarter&
+*j:2 &Jump to entry point&
+
+*: &0&
+	cdef
+*r
+
+*: &1&
+	fedc
+*r
+
+*: &2&
+	*>:0
+	*>:1
+	*>:0
+*h

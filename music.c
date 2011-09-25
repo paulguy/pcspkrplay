@@ -49,6 +49,7 @@ int freesong(song *s) {
 		cur = next;
 	}
 
+	free(s->offsets);
 	free(s);
 
 	return(0);
@@ -57,9 +58,9 @@ int freesong(song *s) {
 int seeksong(song *s, int pos) {
 	int i;
 
-	s->current = s->first;
-	for(i = 0; i < pos; i++)
-		s->current = s->current->next;
+	if(pos > s->count)
+		return(-2);
+	s->current = s->offsets[pos];
 
 	return(0);
 }

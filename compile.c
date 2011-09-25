@@ -24,18 +24,21 @@
 song *compilesong(char *songstr, int length) {
 	char cur;
 	int pos;
+	int labels;
 	song *s;
 	command *c;
 
 	/* transient state */
 	int addnew;
 	int cmd;
-	int data; /* ovarrides octave for special commands */
+	int data;
 	int reg;
 
 	s = initsong();
 	if(s == NULL)
 		return(NULL);
+
+	labels = 0;
 
 	chartolower(songstr, length);
 	for(pos = 0; pos < length; pos++) {
@@ -317,36 +320,60 @@ song *compilesong(char *songstr, int length) {
 						case 'i':
 							addnew = 1;
 							cmd = JNE;
+							if(pos + 1 >= length)
+								return(NULL);
+							if(islabel(songstr, &pos))
+								cmd = JNEL;
 							if(read1arg(&pos, &data, length, songstr) == 1)
 								return(NULL);
 							break;
 						case 'e':
 							addnew = 1;
 							cmd = JE;
+							if(pos + 1 >= length)
+								return(NULL);
+							if(islabel(songstr, &pos))
+								cmd = JEL;
 							if(read1arg(&pos, &data, length, songstr) == 1)
 								return(NULL);
 							break;
 						case 'g':
 							addnew = 1;
 							cmd = JG;
+							if(pos + 1 >= length)
+								return(NULL);
+							if(islabel(songstr, &pos))
+								cmd = JGL;
 							if(read1arg(&pos, &data, length, songstr) == 1)
 								return(NULL);
 							break;
 						case 'l':
 							addnew = 1;
 							cmd = JL;
+							if(pos + 1 >= length)
+								return(NULL);
+							if(islabel(songstr, &pos))
+								cmd = JLL;
 							if(read1arg(&pos, &data, length, songstr) == 1)
 								return(NULL);
 							break;
 						case 'j':
 							addnew = 1;
 							cmd = JMP;
+							if(pos + 1 >= length)
+								return(NULL);
+							if(islabel(songstr, &pos))
+								cmd = JMPL;
 							if(read1arg(&pos, &data, length, songstr) == 1)
 								return(NULL);
 							break;
 						case '>':
 							addnew = 1;
 							cmd = BRA;
+							if(pos + 1 >= length)
+								return(NULL);
+							if(islabel(songstr, &pos))
+								cmd = BRAL;
 							if(read1arg(&pos, &data, length, songstr) == 1)
 								return(NULL);
 							break;
@@ -361,6 +388,11 @@ song *compilesong(char *songstr, int length) {
 						case 'h':
 							addnew = 1;
 							cmd = HALT;
+							break;
+						case ':':
+							addnew = 1;
+							cmd = LABEL;
+							labels++;
 							break;
 						default:
 							break;
@@ -390,6 +422,26 @@ song *compilesong(char *songstr, int length) {
 		freesong(s);
 		return(NULL);
 	}
+
+	rewindsong(s);
+	s->offsets = malloc(sizeof(command *) * s->count);
+	if(s->offsets == NULL)
+		return(NULL);
+	s->labels = malloc(sizeof(int) * labels);
+	if(s->labels == NULL)
+		return(NULL);
+
+	s->nlabels = labels - 1;
+	labels = 0;
+	for(pos = 0; pos < s->count; pos++) {
+		s->offsets[pos] = s->current;
+		if(s->offsets[pos]->cmd == LABEL) {
+			s->labels[labels] = pos;
+			labels++;
+		}
+		nextcommand(s);
+	}
+
 	return(s);
 }
 
@@ -450,6 +502,15 @@ int read2arg(int *pos, int *data, int *reg, int length, char *songstr) {
 
 	return(0);
 }
+
+int islabel(char *songstr, int *pos) {
+	++*pos;
+
+	if(songstr[*pos] == ':')
+		return(1);
+	return(0);
+}
+
 /*
 str *decompilesong(song *s) {
 	str *out;

@@ -94,7 +94,6 @@
 
 typedef enum {
 	NOTE = 0,
-	/* commands for playsong */
 	MOV,
 	ADD,
 	SUB,
@@ -106,11 +105,15 @@ typedef enum {
 	JMP,
 	BRA,
 	RET,
-	PUSH,
-	POP,
 	CFL,
 	HALT,
-	/* internal instructions */
+	LABEL,
+	JNEL,
+	JEL,
+	JLL,
+	JGL,
+	JMPL,
+	BRAL,
 	NOP
 } instruction;
 
@@ -127,6 +130,9 @@ typedef struct {
 	command *first;			/* first item */
 	command *last;			/* last item */
 	command *current;		/* active item */
+	command **offsets;		/* table of offsets */
+	int nlabels;			/* number of labels */
+	int *labels;			/* positions of labels */
 } song;
 
 song *initsong();

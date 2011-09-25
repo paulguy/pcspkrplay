@@ -173,8 +173,18 @@ Z, T, S, I, Q, H, W
 		Clear flags after a comparison.  It's important that this is done 
 		after a comparison in most situations.
 
+	:
+		Create a label.
+
 	h
 		Halt program execution.
+
+	Labels:
+		The argument to any of the jump commands, as well as branch can 
+	be preceded with a : (eg: *j:0) which will say to jump to position at
+	label 0.  Labels are created with the *: command.  They are
+	automatically assigned valuessequentially.  The first *: will be label
+	0, the next will be label 1, then 2 and so on.
 
 |
 	Doesn't do anything and isn't detected by the engine in any way, but
