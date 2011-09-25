@@ -7,7 +7,9 @@ This program will play PC speaker music in Linux using the Linux input
 devices API.  Currently loosely based on Megazeux style play statements, but
 might break on some less compliant play strings.
 
-If you were looking to play PCM sound and music through the PC speaker, this isn't what you want.  Look in to the ALSA driver snd-pcsp for that.  It'll make your PC speaker in to a plain old ALSA "card" for programs to output audio to.
+If you were looking to play PCM sound and music through the PC speaker, this
+isn't what you want.  Look in to the ALSA driver snd-pcsp for that.  It'll make
+your PC speaker in to a plain old ALSA "card" for programs to output audio to.
 
 
 Compiling
@@ -46,8 +48,8 @@ Options:
 	Print quick help/usage.
 
 --debug
-	Enable debug mode.  Prints information on program state after each command
-	is executed.
+	Enable debug mode.  Prints information on program state after each
+	command	is executed.
 
 You will need full read/write access to the event device you wish to use.
 Look up the chmod command for information on setting that up.
@@ -67,8 +69,8 @@ C, D, E, F, G, A, B
 
 #, $
 	Placed after a note, moves the note up or down a semitone.  B# is
-	accepted and becomes C on the next octave except for 6B#, E becomes F, C$
-	becomes B on the previous octave except for 0C$.
+	accepted and becomes C on the next octave except for 6B#, E becomes F,
+	C$ becomes B on the previous octave except for 0C$.
 
 Z, T, S, I, Q, H, W
 	Select note duration, 64th, 32nd, 16th, 8th, quarter, half, whole.
@@ -86,8 +88,8 @@ Z, T, S, I, Q, H, W
 	'!', can override '.'.
 
 &string&
-	Ignores string.  Normally used to play a sample in Megazeux, but for this
-	program, you can use it for comments.
+	Ignores string.  Normally used to play a sample in Megazeux, but for
+	this program, you can use it for comments.
 
 *
 	Extended command
@@ -99,15 +101,15 @@ Z, T, S, I, Q, H, W
 
 	VM COMMANDS
 	-----------
-		VM commands follow the same format as Extended commands, but provide
-	much more robust control and program flow.
+		VM commands follow the same format as Extended commands, but
+	provide	much more robust control and program flow.
 
 	Numbers:
-		A number entered in a command can be from 0 to 16777215.  Since this
-	language doesn't really require spaces, termination is done after 8 digits
-	have been read in, or a nondigit (start of a new command) is reached.  If
-	the next command is an octave change command, you will have to terminate
-	the number with a ^.
+		A number entered in a command can be from 0 to 16777215.  Since
+	this language doesn't really require spaces, termination is done after
+	8 digits have been read in, or a nondigit (start of a new command) is
+	reached.  If the next command is an octave change command, you will
+	have to terminate the number with a ^.
 
 	Examples
 	*b123cdefg - Set BPM to 123, then play CDEFG.
@@ -118,14 +120,14 @@ Z, T, S, I, Q, H, W
 	through z.  o, d, b and l have special meanings for octave, divisor, BPM
 	and duration.  The previous commands used to modify these values also
 	modify these registers, but in a more limited way.  The rest are special
-	purpose and can be used freely.  Any special purpose registers brought out
-	of range will be set to a more sane value.
+	purpose and can be used freely.  Any special purpose registers brought
+	out of range will be set to a more sane value.
 
 	Commands:
-		Commands consist of a letter and possible arguments following.  An
-	argument can either be a numerical value or a register, specified by a n 
-	or an r, or b if it can take both.  Currently there are no instructions
-	that only take a numerical value.
+		Commands consist of a letter and possible arguments following. 
+	An argument can either be a numerical value or a register, specified by
+	a n or an r, or b if it can take both.  Currently there are no
+	instructions that only take a numerical value.
 
 	nb
 		Play a note from 1(C) to 12(B), or 0 to play a rest.
@@ -144,34 +146,34 @@ Z, T, S, I, Q, H, W
 		conditional jumping to specify the items to be compared.
 
 	ib
-		Jump to command position in value or register (b) if comparison is 
-		inequal.
+		Jump to command position in value or register (b) if comparison
+		is inequal.
 
 	eb
-		Jump to command position in value or register (b) if comparison is 
-		equal.
+		Jump to command position in value or register (b) if comparison
+		is equal.
 
 	gb
-		Jump to command position in value or register (b) if second item in 
-		comparison is greater.
+		Jump to command position in value or register (b) if second
+		item in comparison is greater.
 
 	lb
-		Jump to command position in value or register (b) if second item in 
-		comparison is less.
+		Jump to command position in value or register (b) if second
+		item in comparison is less.
 
 	jb
 		Jump to command position in value or register unconditionally.
 
 	>b
-		Branch to a subroutine which can return to the command directly after
-		this one.
+		Branch to a subroutine which can return to the command directly
+		after this one.
 
 	r
 		Return from a subroutine.
 
 	f
-		Clear flags after a comparison.  It's important that this is done 
-		after a comparison in most situations.
+		Clear flags after a comparison.  It's important that this is
+		done after a comparison in most situations.
 
 	:
 		Create a label.
@@ -232,15 +234,17 @@ Device X does not support sound.
 	The input device attempted to use doesn't expose a beeper speaker
 interface.
 
-Segmentation fault/Floating point exception/Arithmetic exception/*** glibc detected: ... ***/etc.
+Segmentation fault/Floating point exception/Arithmetic exception/*** glibc
+detected: ... ***/etc.
 	The program has crashed due to a bug.  Please post a bug report and the
 song which failed on the github page at http://github.com/paulguy/pcspkerplay
 and I will see about fixing it.
 
 VM EXCEPTION: ...
-	If not in debug mode, this can mean either a problem with your song, or a
-bug in the program.  If you feel your song is written correctly and that a bug
-in the program is at fault, please post a bug report.  If it reports DEVICE_ERROR, it could more likely be a bug unrelated to your song at all.
+	If not in debug mode, this can mean either a problem with your song, or
+a bug in the program.  If you feel your song is written correctly and that a bug
+in the program is at fault, please post a bug report.  If it reports
+DEVICE_ERROR, it could more likely be a bug unrelated to your song at all.
 
 Credits
 -------

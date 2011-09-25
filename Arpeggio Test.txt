@@ -1,0 +1,27 @@
+4t
+*j:1
+
+& 
+. Major chord arpeggio for first 4 notes
+. Set A to base note, all other previous state is retained
+&
+*: &0&
+	*na
+	*aa2
+	*na
+	*aa2
+	*na
+	*aa1
+	*na
+*r
+
+*: &1&
+	*mc5 *: &2 Loop for 5 times&
+		*ma3 &start at D&
+		*>:0
+	*f *sc1 *cc0 *i:2
+
+	*mc5 *: &3 Loop for 5 times&
+		*ma1 &start at C&
+		*>:0
+	*f *sc1 *cc0 *i:3

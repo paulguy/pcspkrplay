@@ -392,6 +392,7 @@ song *compilesong(char *songstr, int length) {
 						case ':':
 							addnew = 1;
 							cmd = LABEL;
+							data = IMMED(labels);
 							labels++;
 							break;
 						default:
