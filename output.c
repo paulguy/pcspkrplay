@@ -96,7 +96,7 @@ vmexception playsong(int fd, song *s, vmstate *vm, void (*status)(int cur, int m
 
 	i = 1;
 	running = 1;
-	while(running = 1) {
+	while(running == 1) {
 		if(status != NULL)
 			status(i, s->count);
 
@@ -284,7 +284,7 @@ vmexception playsong(int fd, song *s, vmstate *vm, void (*status)(int cur, int m
 				vm->flags = 0;
 				break;
 			case HALT:
-				return(PROGRAM_ENDED);
+				running = 0;
 				break;
 			default:
 				return(ILLEGAL_INSTRUCTION);
@@ -294,9 +294,9 @@ vmexception playsong(int fd, song *s, vmstate *vm, void (*status)(int cur, int m
 		i++;
 		if(s->current == vm->last)
 			if(nextcommand(s) == 1)
-				return(PROGRAM_ENDED);
+				running = 0;
 
-		if(step == 1) {
+		if(running == 1 && step == 1) {
 			return(BREAKPOINT);
 		}
 	}

@@ -17,6 +17,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include <sys/ioctl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -195,12 +196,15 @@ int main(int argc, char **argv) {
 			}
 		} else {
 			if(display == 1) {
-				playsong(speaker, s, vm, statusout, 0);
+				e = playsong(speaker, s, vm, statusout, 0);
 				fprintf(stderr, "\n");
 			} else {
 				e = playsong(speaker, s, vm, NULL, 0);
-				if(e != PROGRAM_ENDED)
-					printexception(e, s, vm, stderr);
+			}
+			if(e != PROGRAM_ENDED) {
+				playnote(speaker, 0, 0);
+				close(speaker);
+				printexception(e, s, vm, stderr);
 			}
 		}
 	}
@@ -228,6 +232,7 @@ Options:\n\
 }
 
 void signalhandler(int signum) {
+	fprintf(stderr, "\n\nSignal %i received.\n", signum);
 	playnote(speaker, 0, 0);
 	close(speaker);
 	exit(0);

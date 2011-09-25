@@ -23,7 +23,6 @@
 
 song *compilesong(char *songstr, int length) {
 	char cur;
-	int t, t2;
 	int pos;
 	song *s;
 	command *c;
