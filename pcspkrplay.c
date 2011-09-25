@@ -220,7 +220,7 @@ void statusout(int cur, int max) {
 void usage(char *name) {
 	fprintf(stderr, "USAGE: %s <options>\n\
 Options:\n\
---decompile / -d          - Decompile string, used for outputting size-optimized code.\n\
+--decompile / -d          - Decompile string, used for outputting size-optimized code. (Currently disabled)\n\
 --device    / -e device   - Select event device, default is %s.\n\
 --filename  / -f filename - Read from filename instead of standard input.\n\
 --quiet     / -q          - Don't play, only compile (and optionally decompile) then quit.\n\

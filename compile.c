@@ -404,7 +404,7 @@ int read1arg(int *pos, int *data, int length, char *songstr) {
 			if(songstr[*pos] >= 'a' && songstr[*pos] <= 'z' ) {
 				*data = LETTOREG(songstr[*pos]);
 			} else if(songstr[*pos] >= '0' && songstr[*pos] <= '9') {
-				t2 = readnum(&(songstr[*pos]), length - *pos, tmpstr, 10, '^');
+				t2 = readnum(&(songstr[*pos]), length - *pos, tmpstr, 8, '^');
 				t = atoi(tmpstr);
 				*data = IMMED(t);
 				*pos += t2;
@@ -436,7 +436,7 @@ int read2arg(int *pos, int *data, int *reg, int length, char *songstr) {
 			if(songstr[*pos] >= 'a' && songstr[*pos] <= 'z' ) {
 				*data = LETTOREG(songstr[*pos]);
 			} else if(songstr[*pos] >= '0' && songstr[*pos] <= '9') {
-				t2 = readnum(&(songstr[*pos]), length - *pos, tmpstr, 10, '^');
+				t2 = readnum(&(songstr[*pos]), length - *pos, tmpstr, 8, '^');
 				t = atoi(tmpstr);
 				*data = IMMED(t);
 				*pos += t2;

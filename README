@@ -27,7 +27,7 @@ Usage
 
 Options:
 --decompile / -d
-	After compiling, decompile back to music string.  
+	After compiling, decompile back to music string.  (Currently disabled)
 
 --device    / -e device
 	Select event device, default is
@@ -44,6 +44,10 @@ Options:
 
 --help      / -h
 	Print quick help/usage.
+
+--debug
+	Enable debug mode.  Prints information on program state after each command
+	is executed.
 
 You will need full read/write access to the event device you wish to use.
 Look up the chmod command for information on setting that up.
@@ -87,11 +91,90 @@ Z, T, S, I, Q, H, W
 
 *
 	Extended command
-	b###
-		Change BPM from 0 to 999.  (*b060 for 60 BPM)
+	bb
+		Change BPM.  (see VM COMMANDS for argument format)
 
-	d###
-		Change to custom note division.  (*d010 for tenth notes)
+	db
+		Change to custom note division.  (see VM COMMANDS for argument format)
+
+	VM COMMANDS
+	-----------
+		VM commands follow the same format as Extended commands, but provide
+	much more robust control and program flow.
+
+	Numbers:
+		A number entered in a command can be from 0 to 16777215.  Since this
+	language doesn't really require spaces, termination is done after 8 digits
+	have been read in, or a nondigit (start of a new command) is reached.  If
+	the next command is an octave change command, you will have to terminate
+	the number with a ^.
+
+	Examples
+	*b123cdefg - Set BPM to 123, then play CDEFG.
+	*b60^2cdefg - Set BPM to 60, set octave to 2, then play CDEFG.
+
+	Registers:
+		The language includes 26 registers, represented by the letters a
+	through z.  o, d, b and l have special meanings for octave, divisor, BPM
+	and duration.  The previous commands used to modify these values also
+	modify these registers, but in a more limited way.  The rest are special
+	purpose and can be used freely.  Any special purpose registers brought out
+	of range will be set to a more sane value.
+
+	Commands:
+		Commands consist of a letter and possible arguments following.  An
+	argument can either be a numerical value or a register, specified by a n 
+	or an r, or b if it can take both.  Currently there are no instructions
+	that only take a numerical value.
+
+	nb
+		Play a note from 1(C) to 12(B), or 0 to play a rest.
+
+	mrb
+		Move a value or register (b) in to register (r).
+
+	arb
+		Add a value or register (b) to register (r).
+
+	srb
+		Subtract a value or register (b) from register (r).
+
+	crb
+		Compare a value or register (b) with register (r).  Used for
+		conditional jumping to specify the items to be compared.
+
+	ib
+		Jump to command position in value or register (b) if comparison is 
+		inequal.
+
+	eb
+		Jump to command position in value or register (b) if comparison is 
+		equal.
+
+	gb
+		Jump to command position in value or register (b) if second item in 
+		comparison is greater.
+
+	lb
+		Jump to command position in value or register (b) if second item in 
+		comparison is less.
+
+	jb
+		Jump to command position in value or register unconditionally.
+
+	>b
+		Branch to a subroutine which can return to the command directly after
+		this one.
+
+	r
+		Return from a subroutine.
+
+	f
+		Clear flags after a comparison.  It's important that this is done 
+		after a comparison in most situations.
+
+	h
+		Halt program execution.
 
 |
 	Doesn't do anything and isn't detected by the engine in any way, but
@@ -139,6 +222,15 @@ Device X does not support sound.
 	The input device attempted to use doesn't expose a beeper speaker
 interface.
 
+Segmentation fault/Floating point exception/Arithmetic exception/*** glibc detected: ... ***/etc.
+	The program has crashed due to a bug.  Please post a bug report and the
+song which failed on the github page at http://github.com/paulguy/pcspkerplay
+and I will see about fixing it.
+
+VM EXCEPTION: ...
+	If not in debug mode, this can mean either a problem with your song, or a
+bug in the program.  If you feel your song is written correctly and that a bug
+in the program is at fault, please post a bug report.  If it reports DEVICE_ERROR, it could more likely be a bug unrelated to your song at all.
 
 Credits
 -------

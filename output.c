@@ -147,6 +147,8 @@ vmexception playsong(int fd, song *s, vmstate *vm, void (*status)(int cur, int m
 					vm->regs[REGDIVISOR] = 1;
 				if(vm->regs[REGBPM] < 1)
 					vm->regs[REGBPM] = 1;
+				if(vm->regs[REGDURATION] > 2)
+					vm->regs[REGDURATION] = 0;
 				break;
 			case ADD:
 				if(s->current->reg < 26) {
@@ -162,6 +164,8 @@ vmexception playsong(int fd, song *s, vmstate *vm, void (*status)(int cur, int m
 				}
 				if(vm->regs[REGOCTAVE] > 6)
 					vm->regs[REGOCTAVE] = 6;
+				if(vm->regs[REGDURATION] > 2)
+					vm->regs[REGDURATION] = 0;
 				break;
 			case SUB:
 				if(s->current->reg < 26) {
