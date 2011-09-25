@@ -188,7 +188,9 @@ int main(int argc, char **argv) {
 			while(debug == 1) {
 				e = playsong(speaker, s, vm, NULL, 1);
 				printexception(e, s, vm, stderr);
-				if(e == PROGRAM_ENDED)
+				if(e != BREAKPOINT)
+					debug = 0;
+				if(s->current == NULL)
 					debug = 0;
 			}
 		} else {

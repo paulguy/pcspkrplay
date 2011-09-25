@@ -39,3 +39,26 @@ void chartolower(char *str, int length) {
 		}
 	}
 }
+
+int readnum(char *in, int inlen, char *out, int outlen, char term) {
+	int i;
+	int maxlen;
+
+	maxlen = (inlen < outlen) ? inlen : outlen;
+	if(maxlen < 1) {
+		out[0] = '\0';
+		return(0);
+	}
+
+	for(i = 0; i < maxlen; i++) {
+		if(in[i] == term) {
+			out[i] = '\0';
+			return(i);
+		} else if(in[i] < '0' || in[i] > '9')
+			break;
+		out[i] = in[i];
+	}
+
+	out[i] = '\0';
+	return(i - 1);
+}

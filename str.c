@@ -71,8 +71,10 @@ str *readstream(FILE *in) {
 	if(data == NULL)
 		return(NULL);
 
-	while(!feof(in) || size == 0) {
+	while(!feof(in)) {
 		size = fread(&buffer, 1, READBUFFER, in);
+		if(size < 1)
+			break;
 		if(concatchar(data, buffer, size) < 0) {
 			freestr(data);
 			return(NULL);

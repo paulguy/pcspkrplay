@@ -16,3 +16,4 @@
 
 int test_bit(void *data, int length, int bit);
 void chartolower(char *str, int length);
+int readnum(char *in, int inlen, char *out, int outlen, char term);

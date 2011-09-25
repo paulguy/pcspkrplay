@@ -8,17 +8,20 @@ l	duration
 all overs are general purpose
 
 instructions
+b and d reserved for legacy extended commands
 
-n*	note					nr	play note x
-m	move				r	nr	load register x with value/register y
-a	add					r	nr	add y to value/register x
+n*	note					nr	play note
+m	move				r	nr	load register
+a	add					r	nr	add 
 s	subtract			r	nr	subtract
 c	compare				r	nr	set flags for comparison
-n	jump if not equal		nr	jump to position x if not equal (zero flag unset)
-e	jump if equal			nr	jump to position x if equal (zero flag set)
-g	jump if greater			nr	jump to x if greater than
-l	jump if less			nr	jump to x if less than
-j	jump always				nr	jump to x
+i	jump if not equal		nr	jump position if not equal (zero flag unset)
+e	jump if equal			nr	jump position if equal (zero flag set)
+g	jump if greater			nr	jump if greater than
+l	jump if less			nr	jump if less than
+j	jump					nr	jump always
+>	branch					nr	push location on to stack and jump
+r	return						pop location off of stack and jump
 f	clear flags					clear flags from comparison
 h	halt						end execution
 

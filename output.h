@@ -27,6 +27,9 @@
 typedef struct vmstate {
 	unsigned int regs[26];
 	unsigned int flags;
+	command *stack[16];
+	unsigned int sp;
+	command *last;
 } vmstate;
 
 typedef enum {

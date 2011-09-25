@@ -104,6 +104,10 @@ typedef enum {
 	JL,
 	JG,
 	JMP,
+	BRA,
+	RET,
+	PUSH,
+	POP,
 	CFL,
 	HALT,
 	/* internal instructions */

@@ -58,7 +58,7 @@ int seeksong(song *s, int pos) {
 	int i;
 
 	s->current = s->first;
-	for(i = 0; i <= pos; i++)
+	for(i = 0; i < pos; i++)
 		s->current = s->current->next;
 
 	return(0);

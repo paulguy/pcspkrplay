@@ -23,8 +23,7 @@
 
 song *compilesong(char *songstr, int length) {
 	char cur;
-	char tmpstr[11] = "00000000"; /* maximum number is 16777215 */
-	int t;
+	int t, t2;
 	int pos;
 	song *s;
 	command *c;
@@ -269,64 +268,100 @@ song *compilesong(char *songstr, int length) {
 				}
 				break;
 			case '*':
-				pos++;
-				if(pos < length) {
+				if(pos + 1 < length) {
+					pos++;
 					switch(songstr[pos]) {
 						case 'b':
-							if(pos + 1 < length) {
-								if(songstr[pos + 1] >= 'a' && songstr[pos + 1] <= 'z' ) {
-									addnew = 1;
-									cmd = MOV;
-									reg = REGBPM;
-									data = LETTOREG(songstr[pos + 1]);
-									pos++;
-								} else if(pos + 3 < length) {
-									tmpstr[0] = songstr[pos + 1];
-									tmpstr[1] = songstr[pos + 2];
-									tmpstr[2] = songstr[pos + 3];
-									tmpstr[3] = '\0';
-									t = atoi(tmpstr);
-									if(t > 1) {
-										addnew = 1;
-										cmd = MOV;
-										reg = REGBPM;
-										data = IMMED(t);
-									} else {
-										return(NULL);
-									}
-									pos += 3;
-								} else {
-									return(NULL);
-								}
-							}
+							addnew = 1;
+							cmd = MOV;
+							reg = REGBPM;
+							if(read1arg(&pos, &data, length, songstr) == 1)
+								return(NULL);
 							break;
 						case 'd':
-							if(pos + 1 < length) {
-								if(songstr[pos + 1] >= 'a' && songstr[pos + 1] <= 'z' ) {
-									addnew = 1;
-									cmd = MOV;
-									reg = REGDIVISOR;
-									data = LETTOREG(songstr[pos + 1]);
-									pos++;
-								} else if(pos + 3 < length) {
-									tmpstr[0] = songstr[pos + 1];
-									tmpstr[1] = songstr[pos + 2];
-									tmpstr[2] = songstr[pos + 3];
-									tmpstr[3] = '\0';
-									t = atoi(tmpstr);
-									if(t > 1) {
-										addnew = 1;
-										cmd = MOV;
-										reg = REGDIVISOR;
-										data = t;
-									} else {
-										return(NULL);
-									}
-									pos += 3;
-								} else {
-									return(NULL);
-								}
-							}
+							addnew = 1;
+							cmd = MOV;
+							reg = REGDIVISOR;
+							if(read1arg(&pos, &data, length, songstr) == 1)
+								return(NULL);
+							break;
+						case 'n':
+							addnew = 1;
+							cmd = NOTE;
+							if(read1arg(&pos, &data, length, songstr) == 1)
+								return(NULL);
+							break;
+						case 'm':
+							addnew = 1;
+							cmd = MOV;
+							if(read2arg(&pos, &data, &reg, length, songstr) == 1)
+								return(NULL);
+							break;
+						case 'a':
+							addnew = 1;
+							cmd = ADD;
+							if(read2arg(&pos, &data, &reg, length, songstr) == 1)
+								return(NULL);
+							break;
+						case 's':
+							addnew = 1;
+							cmd = SUB;
+							if(read2arg(&pos, &data, &reg, length, songstr) == 1)
+								return(NULL);
+							break;
+						case 'c':
+							addnew = 1;
+							cmd = CMP;
+							if(read2arg(&pos, &data, &reg, length, songstr) == 1)
+								return(NULL);
+							break;
+						case 'i':
+							addnew = 1;
+							cmd = JNE;
+							if(read1arg(&pos, &data, length, songstr) == 1)
+								return(NULL);
+							break;
+						case 'e':
+							addnew = 1;
+							cmd = JE;
+							if(read1arg(&pos, &data, length, songstr) == 1)
+								return(NULL);
+							break;
+						case 'g':
+							addnew = 1;
+							cmd = JG;
+							if(read1arg(&pos, &data, length, songstr) == 1)
+								return(NULL);
+							break;
+						case 'l':
+							addnew = 1;
+							cmd = JL;
+							if(read1arg(&pos, &data, length, songstr) == 1)
+								return(NULL);
+							break;
+						case 'j':
+							addnew = 1;
+							cmd = JMP;
+							if(read1arg(&pos, &data, length, songstr) == 1)
+								return(NULL);
+							break;
+						case '>':
+							addnew = 1;
+							cmd = BRA;
+							if(read1arg(&pos, &data, length, songstr) == 1)
+								return(NULL);
+							break;
+						case 'r':
+							addnew = 1;
+							cmd = RET;
+							break;
+						case 'f':
+							addnew = 1;
+							cmd = CFL;
+							break;
+						case 'h':
+							addnew = 1;
+							cmd = HALT;
 							break;
 						default:
 							break;
@@ -357,6 +392,64 @@ song *compilesong(char *songstr, int length) {
 		return(NULL);
 	}
 	return(s);
+}
+
+int read1arg(int *pos, int *data, int length, char *songstr) {
+	int t;
+	int t2;
+	char tmpstr[11] = "00000000"; /* maximum number is 16777215 */
+
+	if(*pos + 1 < length) {
+		++*pos;
+		if(*pos + 1 < length) {
+			if(songstr[*pos] >= 'a' && songstr[*pos] <= 'z' ) {
+				*data = LETTOREG(songstr[*pos]);
+			} else if(songstr[*pos] >= '0' && songstr[*pos] <= '9') {
+				t2 = readnum(&(songstr[*pos]), length - *pos, tmpstr, 10, '^');
+				t = atoi(tmpstr);
+				*data = IMMED(t);
+				*pos += t2;
+			} else {
+				return(1);
+			}
+		}
+	} else {
+		return(1);
+	}
+
+	return(0);
+}
+
+int read2arg(int *pos, int *data, int *reg, int length, char *songstr) {
+	int t;
+	int t2;
+	char tmpstr[11] = "00000000"; /* maximum number is 16777215 */
+
+	if(*pos + 1 < length) {
+		++*pos;
+		if(songstr[*pos] >= 'a' && songstr[*pos] <= 'z') {
+			*reg = LETTOREG(songstr[*pos]);
+			++*pos;
+		} else {
+			return(1);
+		}
+		if(*pos + 1 < length) {
+			if(songstr[*pos] >= 'a' && songstr[*pos] <= 'z' ) {
+				*data = LETTOREG(songstr[*pos]);
+			} else if(songstr[*pos] >= '0' && songstr[*pos] <= '9') {
+				t2 = readnum(&(songstr[*pos]), length - *pos, tmpstr, 10, '^');
+				t = atoi(tmpstr);
+				*data = IMMED(t);
+				*pos += t2;
+			} else {
+				return(1);
+			}
+		}
+	} else {
+		return(1);
+	}
+
+	return(0);
 }
 /*
 str *decompilesong(song *s) {

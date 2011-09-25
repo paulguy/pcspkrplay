@@ -18,4 +18,6 @@
 #include "str.h"
 
 song *compilesong(char *songstr, int length);
+int read1arg(int *pos, int *data, int length, char *songstr);
+int read2arg(int *pos, int *data, int *reg, int length, char *songstr);
 str *decompilesong(song *s);
