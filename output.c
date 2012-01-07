@@ -137,9 +137,25 @@ vmexception playsong(int fd, song *s, vmstate *vm, void (*status)(int cur, int m
 			case MOV:
 				if(s->current->reg < 26) {
 					if((s->current->data & 0xFF) == 0xFF) {
-						vm->regs[s->current->reg] = IMMEDTOINT(s->current->data);
+						if(s->current->reg == REGDURATION) {
+							if(vm->regs[REGDURATION] == IMMEDTOINT(s->current->data)) {
+								vm->regs[REGDURATION] = 0;
+							} else {
+								vm->regs[s->current->reg] = IMMEDTOINT(s->current->data);
+							}
+						} else {
+							vm->regs[s->current->reg] = IMMEDTOINT(s->current->data);
+						}
 					} else if(s->current->data < 26) {
-						vm->regs[s->current->reg] = vm->regs[s->current->data];
+						if(s->current->reg == REGDURATION) {
+							if(vm->regs[REGDURATION] == vm->regs[s->current->data]) {
+								vm->regs[REGDURATION] = 0;
+							} else {
+								vm->regs[s->current->reg] = vm->regs[s->current->data];
+							}
+						} else {
+							vm->regs[s->current->reg] = vm->regs[s->current->data];
+						}
 					} else {
 						return(BAD_ARGUMENT);
 					}
