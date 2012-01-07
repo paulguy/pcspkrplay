@@ -107,319 +107,321 @@ vmexception playsong(int fd, song *s, vmstate *vm, void (*status)(int cur, int m
 
 		vm->last = s->current;
 
-		switch(s->current->cmd) {
-			case NOTE:
-					if((s->current->data & 0xFF) == 0xFF) {
-						t = IMMEDTOINT(s->current->data);
-						if(playnote(fd, IMMEDTOINT(s->current->data), vm->regs[REGOCTAVE]) < 0)
-							return(DEVICE_ERROR);
-					} else if(s->current->data < 26) {
-						if(playnote(fd, vm->regs[s->current->data], vm->regs[REGOCTAVE]) < 0)
-							return(DEVICE_ERROR);
-					} else {
-						return(BAD_ARGUMENT);
+		if(s->current != NULL) {
+			switch(s->current->cmd) {
+				case NOTE:
+						if((s->current->data & 0xFF) == 0xFF) {
+							t = IMMEDTOINT(s->current->data);
+							if(playnote(fd, IMMEDTOINT(s->current->data), vm->regs[REGOCTAVE]) < 0)
+								return(DEVICE_ERROR);
+						} else if(s->current->data < 26) {
+							if(playnote(fd, vm->regs[s->current->data], vm->regs[REGOCTAVE]) < 0)
+								return(DEVICE_ERROR);
+						} else {
+							return(BAD_ARGUMENT);
+						}
+
+					notelen = 60000000000ul / vm->regs[REGBPM] / vm->regs[REGDIVISOR];
+					if(vm->regs[REGDURATION] == DDOT) {
+						notelen = notelen * 3 / 2;
+					} else if(vm->regs[REGDURATION] == DTRIPLET) {
+						notelen = notelen / 3;
 					}
+					req.tv_sec = notelen / 1000000000ul;
+					req.tv_nsec = notelen % 1000000000ul;
 
-				notelen = 60000000000ul / vm->regs[REGBPM] / vm->regs[REGDIVISOR];
-				if(vm->regs[REGDURATION] == DDOT) {
-					notelen = notelen * 3 / 2;
-				} else if(vm->regs[REGDURATION] == DTRIPLET) {
-					notelen = notelen / 3;
-				}
-				req.tv_sec = notelen / 1000000000ul;
-				req.tv_nsec = notelen % 1000000000ul;
-
-				while(nanosleep(&req, &rem) == -1) {
-					req.tv_sec = rem.tv_sec;
-					req.tv_nsec = rem.tv_nsec;
-				}
-				break;
-			case MOV:
-				if(s->current->reg < 26) {
-					if((s->current->data & 0xFF) == 0xFF) {
-						if(s->current->reg == REGDURATION) {
-							if(vm->regs[REGDURATION] == IMMEDTOINT(s->current->data)) {
-								vm->regs[REGDURATION] = 0;
+					while(nanosleep(&req, &rem) == -1) {
+						req.tv_sec = rem.tv_sec;
+						req.tv_nsec = rem.tv_nsec;
+					}
+					break;
+				case MOV:
+					if(s->current->reg < 26) {
+						if((s->current->data & 0xFF) == 0xFF) {
+							if(s->current->reg == REGDURATION) {
+								if(vm->regs[REGDURATION] == IMMEDTOINT(s->current->data)) {
+									vm->regs[REGDURATION] = 0;
+								} else {
+									vm->regs[s->current->reg] = IMMEDTOINT(s->current->data);
+								}
 							} else {
 								vm->regs[s->current->reg] = IMMEDTOINT(s->current->data);
 							}
-						} else {
-							vm->regs[s->current->reg] = IMMEDTOINT(s->current->data);
-						}
-					} else if(s->current->data < 26) {
-						if(s->current->reg == REGDURATION) {
-							if(vm->regs[REGDURATION] == vm->regs[s->current->data]) {
-								vm->regs[REGDURATION] = 0;
+						} else if(s->current->data < 26) {
+							if(s->current->reg == REGDURATION) {
+								if(vm->regs[REGDURATION] == vm->regs[s->current->data]) {
+									vm->regs[REGDURATION] = 0;
+								} else {
+									vm->regs[s->current->reg] = vm->regs[s->current->data];
+								}
 							} else {
 								vm->regs[s->current->reg] = vm->regs[s->current->data];
 							}
 						} else {
-							vm->regs[s->current->reg] = vm->regs[s->current->data];
+							return(BAD_ARGUMENT);
+						}
+					} else {
+						return(BAD_REGISTER);
+					}
+					if(vm->regs[REGOCTAVE] > 6)
+						vm->regs[REGOCTAVE] = 6;
+					if(vm->regs[REGDIVISOR] < 1)
+						vm->regs[REGDIVISOR] = 1;
+					if(vm->regs[REGBPM] < 1)
+						vm->regs[REGBPM] = 1;
+					if(vm->regs[REGDURATION] > 2)
+						vm->regs[REGDURATION] = 0;
+					break;
+				case ADD:
+					if(s->current->reg < 26) {
+						if((s->current->data & 0xFF) == 0xFF) {
+							vm->regs[s->current->reg] += IMMEDTOINT(s->current->data);
+						} else if(s->current->data < 26) {
+							vm->regs[s->current->reg] += vm->regs[s->current->data];
+						} else {
+							return(BAD_ARGUMENT);
+						}
+					} else {
+						return(BAD_REGISTER);
+					}
+					if(vm->regs[REGOCTAVE] > 6)
+						vm->regs[REGOCTAVE] = 6;
+					if(vm->regs[REGDURATION] > 2)
+						vm->regs[REGDURATION] = 0;
+					break;
+				case SUB:
+					if(s->current->reg < 26) {
+						if((s->current->data & 0xFF) == 0xFF) {
+							vm->regs[s->current->reg] -= IMMEDTOINT(s->current->data);
+						} else if(s->current->data < 26) {
+							vm->regs[s->current->reg] -= vm->regs[s->current->data];
+						} else {
+							return(BAD_ARGUMENT);
+						}
+					} else {
+						return(BAD_REGISTER);
+					}
+					if(vm->regs[REGDIVISOR] < 1)
+						vm->regs[REGDIVISOR] = 1;
+					break;
+				case CMP:
+					if(s->current->reg < 26) {
+						if((s->current->data & 0xFF) == 0xFF) {
+							t = IMMEDTOINT(s->current->data);
+							if(t > vm->regs[s->current->reg])
+								vm->flags |= FLAG_GREATER;
+							if(t == vm->regs[s->current->reg])
+								vm->flags |= FLAG_EQUAL;
+						} else if(s->current->data < 26) {
+							if(vm->regs[s->current->data] > vm->regs[s->current->reg])
+								vm->flags |= FLAG_GREATER;
+							if(vm->regs[s->current->data] == vm->regs[s->current->reg])
+								vm->flags |= FLAG_EQUAL;
+						} else {
+							return(BAD_ARGUMENT);
+						}
+					} else {
+						return(BAD_REGISTER);
+					}
+					break;
+				case JNE:
+					if((s->current->data & 0xFF) == 0xFF) {
+						if(!(vm->flags & FLAG_EQUAL)) {
+							t = IMMEDTOINT(s->current->data);
+							seeksong(s, t);
+						}
+					} else if(s->current->data < 26) {
+						if(!(vm->flags & FLAG_EQUAL))
+							seeksong(s, vm->regs[s->current->data]);
+					} else {
+						return(BAD_ARGUMENT);
+					}
+					break;
+				case JE:
+					if((s->current->data & 0xFF) == 0xFF) {
+						if(vm->flags & FLAG_EQUAL) {
+							t = IMMEDTOINT(s->current->data);
+							seeksong(s, t);
+						}
+					} else if(s->current->data < 26) {
+						if(vm->flags & FLAG_EQUAL)
+							seeksong(s, vm->regs[s->current->data]);
+					} else {
+						return(BAD_ARGUMENT);
+					}
+					break;
+				case JL:
+					if((s->current->data & 0xFF) == 0xFF) {
+						if(!(vm->flags & FLAG_GREATER)) {
+							t = IMMEDTOINT(s->current->data);
+							seeksong(s, t);
+						}
+					} else if(s->current->data < 26) {
+						if(!(vm->flags & FLAG_GREATER))
+							seeksong(s, vm->regs[s->current->data]);
+					} else {
+						return(BAD_ARGUMENT);
+					}
+					break;
+				case JG:
+					if((s->current->data & 0xFF) == 0xFF) {
+						if(vm->flags & FLAG_GREATER) {
+							t = IMMEDTOINT(s->current->data);
+							seeksong(s, t);
+						}
+					} else if(s->current->data < 26) {
+						if(vm->flags & FLAG_GREATER)
+							seeksong(s, vm->regs[s->current->data]);
+					} else {
+						return(BAD_ARGUMENT);
+					}
+					break;
+				case JMP:
+					if((s->current->data & 0xFF) == 0xFF) {
+						t = IMMEDTOINT(s->current->data);
+						seeksong(s, t);
+					} else if(s->current->data < 26) {
+						seeksong(s, vm->regs[s->current->data]);
+					} else {
+						return(BAD_ARGUMENT);
+					}
+					break;
+				case BRA:
+					if(s->current->next == NULL)
+						return(ILLEGAL_INSTRUCTION);
+					vm->stack[vm->sp] = s->current->next;
+					vm->sp++;
+					if((s->current->data & 0xFF) == 0xFF) {
+						t = IMMEDTOINT(s->current->data);
+						seeksong(s, t);
+					} else if(s->current->data < 26) {
+						seeksong(s, vm->regs[s->current->data]);
+					} else {
+						return(BAD_ARGUMENT);
+					}
+					break;
+				case JNEL:
+					if((s->current->data & 0xFF) == 0xFF) {
+						if(!(vm->flags & FLAG_EQUAL)) {
+							t = IMMEDTOINT(s->current->data);
+							if(t > s->nlabels)
+								return(BAD_ARGUMENT);
+							seeksong(s, s->labels[t]);
+						}
+					} else if(s->current->data < 26) {
+						if(!(vm->flags & FLAG_EQUAL)) {
+							if(vm->regs[s->current->data] > s->nlabels)
+								return(BAD_ARGUMENT);
+							seeksong(s, s->labels[vm->regs[s->current->data]]);
 						}
 					} else {
 						return(BAD_ARGUMENT);
 					}
-				} else {
-					return(BAD_REGISTER);
-				}
-				if(vm->regs[REGOCTAVE] > 6)
-					vm->regs[REGOCTAVE] = 6;
-				if(vm->regs[REGDIVISOR] < 1)
-					vm->regs[REGDIVISOR] = 1;
-				if(vm->regs[REGBPM] < 1)
-					vm->regs[REGBPM] = 1;
-				if(vm->regs[REGDURATION] > 2)
-					vm->regs[REGDURATION] = 0;
-				break;
-			case ADD:
-				if(s->current->reg < 26) {
+					break;
+				case JEL:
 					if((s->current->data & 0xFF) == 0xFF) {
-						vm->regs[s->current->reg] += IMMEDTOINT(s->current->data);
+						if(vm->flags & FLAG_EQUAL) {
+							t = IMMEDTOINT(s->current->data);
+							if(t > s->nlabels)
+								return(BAD_ARGUMENT);
+							seeksong(s, s->labels[t]);
+						}
 					} else if(s->current->data < 26) {
-						vm->regs[s->current->reg] += vm->regs[s->current->data];
+						if(vm->flags & FLAG_EQUAL) {
+							if(vm->regs[s->current->data] > s->nlabels)
+								return(BAD_ARGUMENT);
+							seeksong(s, s->labels[vm->regs[s->current->data]]);
+						}
 					} else {
 						return(BAD_ARGUMENT);
 					}
-				} else {
-					return(BAD_REGISTER);
-				}
-				if(vm->regs[REGOCTAVE] > 6)
-					vm->regs[REGOCTAVE] = 6;
-				if(vm->regs[REGDURATION] > 2)
-					vm->regs[REGDURATION] = 0;
-				break;
-			case SUB:
-				if(s->current->reg < 26) {
+					break;
+				case JLL:
 					if((s->current->data & 0xFF) == 0xFF) {
-						vm->regs[s->current->reg] -= IMMEDTOINT(s->current->data);
+						if(!(vm->flags & FLAG_GREATER)) {
+							t = IMMEDTOINT(s->current->data);
+							if(t > s->nlabels)
+								return(BAD_ARGUMENT);
+							seeksong(s, s->labels[t]);
+						}
 					} else if(s->current->data < 26) {
-						vm->regs[s->current->reg] -= vm->regs[s->current->data];
+						if(!(vm->flags & FLAG_GREATER)) {
+							if(vm->regs[s->current->data] > s->nlabels)
+								return(BAD_ARGUMENT);
+							seeksong(s, s->labels[vm->regs[s->current->data]]);
+						}
 					} else {
 						return(BAD_ARGUMENT);
 					}
-				} else {
-					return(BAD_REGISTER);
-				}
-				if(vm->regs[REGDIVISOR] < 1)
-					vm->regs[REGDIVISOR] = 1;
-				break;
-			case CMP:
-				if(s->current->reg < 26) {
+					break;
+				case JGL:
 					if((s->current->data & 0xFF) == 0xFF) {
-						t = IMMEDTOINT(s->current->data);
-						if(t > vm->regs[s->current->reg])
-							vm->flags |= FLAG_GREATER;
-						if(t == vm->regs[s->current->reg])
-							vm->flags |= FLAG_EQUAL;
+						if(vm->flags & FLAG_GREATER) {
+							t = IMMEDTOINT(s->current->data);
+							if(t > s->nlabels)
+								return(BAD_ARGUMENT);
+							seeksong(s, s->labels[t]);
+						}
 					} else if(s->current->data < 26) {
-						if(vm->regs[s->current->data] > vm->regs[s->current->reg])
-							vm->flags |= FLAG_GREATER;
-						if(vm->regs[s->current->data] == vm->regs[s->current->reg])
-							vm->flags |= FLAG_EQUAL;
+						if(vm->flags & FLAG_GREATER) {
+							if(vm->regs[s->current->data] > s->nlabels)
+								return(BAD_ARGUMENT);
+							seeksong(s, s->labels[vm->regs[s->current->data]]);
+						}
 					} else {
 						return(BAD_ARGUMENT);
 					}
-				} else {
-					return(BAD_REGISTER);
-				}
-				break;
-			case JNE:
-				if((s->current->data & 0xFF) == 0xFF) {
-					if(!(vm->flags & FLAG_EQUAL)) {
+					break;
+				case JMPL:
+					if((s->current->data & 0xFF) == 0xFF) {
 						t = IMMEDTOINT(s->current->data);
-						seeksong(s, t);
+						if(t > s->nlabels)
+							return(BAD_ARGUMENT);
+						seeksong(s, s->labels[t]);
+					} else if(s->current->data < 26) {
+	 					if(vm->regs[s->current->data] > s->nlabels)
+							return(BAD_ARGUMENT);
+						seeksong(s, s->labels[vm->regs[s->current->data]]);
+					} else {
+						return(BAD_ARGUMENT);
 					}
-				} else if(s->current->data < 26) {
-					if(!(vm->flags & FLAG_EQUAL))
-						seeksong(s, vm->regs[s->current->data]);
-				} else {
-					return(BAD_ARGUMENT);
-				}
-				break;
-			case JE:
-				if((s->current->data & 0xFF) == 0xFF) {
-					if(vm->flags & FLAG_EQUAL) {
+					break;
+				case BRAL:
+					vm->stack[vm->sp] = s->current->next;
+					vm->sp++;
+					if((s->current->data & 0xFF) == 0xFF) {
 						t = IMMEDTOINT(s->current->data);
-						seeksong(s, t);
+						if(t > s->nlabels)
+							return(BAD_ARGUMENT);
+						seeksong(s, s->labels[t]);
+					} else if(s->current->data < 26) {
+	 					if(vm->regs[s->current->data] > s->nlabels)
+							return(BAD_ARGUMENT);
+						seeksong(s, s->labels[vm->regs[s->current->data]]);
+					} else {
+						return(BAD_ARGUMENT);
 					}
-				} else if(s->current->data < 26) {
-					if(vm->flags & FLAG_EQUAL)
-						seeksong(s, vm->regs[s->current->data]);
-				} else {
-					return(BAD_ARGUMENT);
-				}
-				break;
-			case JL:
-				if((s->current->data & 0xFF) == 0xFF) {
-					if(!(vm->flags & FLAG_GREATER)) {
-						t = IMMEDTOINT(s->current->data);
-						seeksong(s, t);
-					}
-				} else if(s->current->data < 26) {
-					if(!(vm->flags & FLAG_GREATER))
-						seeksong(s, vm->regs[s->current->data]);
-				} else {
-					return(BAD_ARGUMENT);
-				}
-				break;
-			case JG:
-				if((s->current->data & 0xFF) == 0xFF) {
-					if(vm->flags & FLAG_GREATER) {
-						t = IMMEDTOINT(s->current->data);
-						seeksong(s, t);
-					}
-				} else if(s->current->data < 26) {
-					if(vm->flags & FLAG_GREATER)
-						seeksong(s, vm->regs[s->current->data]);
-				} else {
-					return(BAD_ARGUMENT);
-				}
-				break;
-			case JMP:
-				if((s->current->data & 0xFF) == 0xFF) {
-					t = IMMEDTOINT(s->current->data);
-					seeksong(s, t);
-				} else if(s->current->data < 26) {
-					seeksong(s, vm->regs[s->current->data]);
-				} else {
-					return(BAD_ARGUMENT);
-				}
-				break;
-			case BRA:
-				if(s->current->next == NULL)
+					break;
+				case RET:
+					if(vm->sp == 0)
+						return(ILLEGAL_INSTRUCTION);
+					vm->sp--;
+					s->current = vm->stack[vm->sp];
+					break;
+				case CFL:
+					vm->flags = 0;
+					break;
+				case HALT:
+					running = 0;
+					break;
+				case LABEL:
+					break;
+				default:
 					return(ILLEGAL_INSTRUCTION);
-				vm->stack[vm->sp] = s->current->next;
-				vm->sp++;
-				if((s->current->data & 0xFF) == 0xFF) {
-					t = IMMEDTOINT(s->current->data);
-					seeksong(s, t);
-				} else if(s->current->data < 26) {
-					seeksong(s, vm->regs[s->current->data]);
-				} else {
-					return(BAD_ARGUMENT);
-				}
-				break;
-			case JNEL:
-				if((s->current->data & 0xFF) == 0xFF) {
-					if(!(vm->flags & FLAG_EQUAL)) {
-						t = IMMEDTOINT(s->current->data);
-						if(t > s->nlabels)
-							return(BAD_ARGUMENT);
-						seeksong(s, s->labels[t]);
-					}
-				} else if(s->current->data < 26) {
-					if(!(vm->flags & FLAG_EQUAL)) {
-						if(vm->regs[s->current->data] > s->nlabels)
-							return(BAD_ARGUMENT);
-						seeksong(s, s->labels[vm->regs[s->current->data]]);
-					}
-				} else {
-					return(BAD_ARGUMENT);
-				}
-				break;
-			case JEL:
-				if((s->current->data & 0xFF) == 0xFF) {
-					if(vm->flags & FLAG_EQUAL) {
-						t = IMMEDTOINT(s->current->data);
-						if(t > s->nlabels)
-							return(BAD_ARGUMENT);
-						seeksong(s, s->labels[t]);
-					}
-				} else if(s->current->data < 26) {
-					if(vm->flags & FLAG_EQUAL) {
-						if(vm->regs[s->current->data] > s->nlabels)
-							return(BAD_ARGUMENT);
-						seeksong(s, s->labels[vm->regs[s->current->data]]);
-					}
-				} else {
-					return(BAD_ARGUMENT);
-				}
-				break;
-			case JLL:
-				if((s->current->data & 0xFF) == 0xFF) {
-					if(!(vm->flags & FLAG_GREATER)) {
-						t = IMMEDTOINT(s->current->data);
-						if(t > s->nlabels)
-							return(BAD_ARGUMENT);
-						seeksong(s, s->labels[t]);
-					}
-				} else if(s->current->data < 26) {
-					if(!(vm->flags & FLAG_GREATER)) {
-						if(vm->regs[s->current->data] > s->nlabels)
-							return(BAD_ARGUMENT);
-						seeksong(s, s->labels[vm->regs[s->current->data]]);
-					}
-				} else {
-					return(BAD_ARGUMENT);
-				}
-				break;
-			case JGL:
-				if((s->current->data & 0xFF) == 0xFF) {
-					if(vm->flags & FLAG_GREATER) {
-						t = IMMEDTOINT(s->current->data);
-						if(t > s->nlabels)
-							return(BAD_ARGUMENT);
-						seeksong(s, s->labels[t]);
-					}
-				} else if(s->current->data < 26) {
-					if(vm->flags & FLAG_GREATER) {
-						if(vm->regs[s->current->data] > s->nlabels)
-							return(BAD_ARGUMENT);
-						seeksong(s, s->labels[vm->regs[s->current->data]]);
-					}
-				} else {
-					return(BAD_ARGUMENT);
-				}
-				break;
-			case JMPL:
-				if((s->current->data & 0xFF) == 0xFF) {
-					t = IMMEDTOINT(s->current->data);
-					if(t > s->nlabels)
-						return(BAD_ARGUMENT);
-					seeksong(s, s->labels[t]);
-				} else if(s->current->data < 26) {
- 					if(vm->regs[s->current->data] > s->nlabels)
-						return(BAD_ARGUMENT);
-					seeksong(s, s->labels[vm->regs[s->current->data]]);
-				} else {
-					return(BAD_ARGUMENT);
-				}
-				break;
-			case BRAL:
-				if(s->current->next == NULL)
-					return(ILLEGAL_INSTRUCTION);
-				vm->stack[vm->sp] = s->current->next;
-				vm->sp++;
-				if((s->current->data & 0xFF) == 0xFF) {
-					t = IMMEDTOINT(s->current->data);
-					if(t > s->nlabels)
-						return(BAD_ARGUMENT);
-					seeksong(s, s->labels[t]);
-				} else if(s->current->data < 26) {
- 					if(vm->regs[s->current->data] > s->nlabels)
-						return(BAD_ARGUMENT);
-					seeksong(s, s->labels[vm->regs[s->current->data]]);
-				} else {
-					return(BAD_ARGUMENT);
-				}
-				break;
-			case RET:
-				if(vm->sp == 0)
-					return(ILLEGAL_INSTRUCTION);
-				vm->sp--;
-				s->current = vm->stack[vm->sp];
-				break;
-			case CFL:
-				vm->flags = 0;
-				break;
-			case HALT:
-				running = 0;
-				break;
-			case LABEL:
-				break;
-			default:
-				return(ILLEGAL_INSTRUCTION);
-				break;
+					break;
+			}
+		} else {
+			running = 0;
 		}
 
 		i++;
