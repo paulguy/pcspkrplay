@@ -1,0 +1,29 @@
+&Ducktales Theme - Mark Mueller,  Incomplete transcription&
+
+&Bs are flat&
+*j:3
+
+*: &0, pattern 1&
+	|3ifxax+cxdx|qe$ie$qdic-qb$|
+*r
+
+*: &1, pattern 2&
+	|4qffx+c|-axxx|fe$d$e$|fe$d$e$|
+*r
+
+*: &2, loop 1&
+	*>:0
+	|3q.b$.haix|q.b$.haix|
+	*>:0
+	|4q.e$.hdix|q.e$.hdix|
+	|3qxgb$+d|.d.hcix|qxdfg|.a.hgix|
+	*>:1
+	*>:1
+	|4qffx+c|-axxx|i.x.sfq.f.sfqaf|ccdf|
+	|qxi.f.sfqaf|abaf|xi.g.sgqga|baga|gghx|
+*r
+
+*: &3, main&
+	*>:2
+	*>:2
+*h
